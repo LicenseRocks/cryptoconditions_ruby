@@ -1,4 +1,4 @@
-class CryptoconditionsRuby::Lib::Writer
+class CryptoconditionsRuby::Utils::Writer
   attr_accessor :components
   def initialize
     @components = []
@@ -7,7 +7,7 @@ class CryptoconditionsRuby::Lib::Writer
   def write_uint(value, length)
     raise TypeError.new('UInt must be an integer') unless value.is_a?(Integer)
     raise TypeError.new('UInt must be positive') unless value > 0
-    raise TypeError.new('UInt {} doesn not fit in {} bytes') if sprintf('%02b', value).length > length * 8
+    raise TypeError.new("UInt '#{value}' does not fit in '#{length}' bytes") if sprintf('%02b', value).length > length * 8
 
     buffer = (length - 1).times.map { 0 }.push(value).pack('C*')
     write(buffer)
@@ -46,13 +46,13 @@ class CryptoconditionsRuby::Lib::Writer
 
   def write(in_bytes)
     out = in_bytes
-    if out.is_a?(String) || out.is_a?(Array)
+    if (out.is_a?(String) && out.encoding.to_s == 'ASCII-8BIT') || out.is_a?(Array)
       out = out.bytes if out.is_a?(String)
-      out = out.map {|i| sprintf('%02x', i).to_i(16).chr }.join
+      out = out.pack("C*")
     else
       out = out.encode('utf-8')
     end
-    components.append(out)
+    components.push(out)
   end
 
   def buffer
