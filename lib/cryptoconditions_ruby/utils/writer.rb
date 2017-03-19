@@ -45,14 +45,7 @@ class CryptoconditionsRuby::Utils::Writer
   end
 
   def write(in_bytes)
-    out = in_bytes
-    if (out.is_a?(String) && out.encoding.to_s == 'ASCII-8BIT') || out.is_a?(Array)
-      out = out.bytes if out.is_a?(String)
-      out = out.pack("C*")
-    else
-      out = out.encode('utf-8')
-    end
-    components.push(out)
+    components.push(write_out(in_bytes))
   end
 
   def buffer
@@ -73,5 +66,18 @@ class CryptoconditionsRuby::Utils::Writer
 
   def write_uint64(value)
     write_uint(value, 8)
+  end
+
+  private
+
+  def write_out(in_bytes)
+    out = in_bytes
+    if (out.is_a?(String) && out.encoding.to_s == 'ASCII-8BIT') || out.is_a?(Array)
+      out = out.bytes if out.is_a?(String)
+      out = out.pack("C*")
+    else
+      out = out.encode('utf-8')
+    end
+    out
   end
 end
