@@ -1,25 +1,23 @@
+require 'pry'
 class CryptoconditionsRuby::Utils::Predictor
-  attr_reader :size
+  attr_accessor :size
 
   def initialize
     @size = 0
   end
 
   def write_uint(_value, length)
-    self.size += length
+    skip(length)
   end
 
   def write_var_uint(value)
-    if value.is_a?(String)
-      write_var_octet_string(value)
-    else
-      raise TypeError.new('UInt must be an integer') unless value.is_a?(Integer)
-      raise TypeError.new('UInt must be positive') unless value > 0
+    return write_var_octet_string(value) if value.is_a?(String)
+    raise TypeError.new('UInt must be an integer') unless value.is_a?(Integer)
+    raise TypeError.new('UInt must be positive') unless value > 0
 
-      length_of_value = (sprintf('%02b', value).length / 8.0).ceil.to_i
-      buffer = (length_of_value - 1).times.map { 0 }.push(value).pack('C*')
-      write_var_octet_string(buffer)
-    end
+    length_of_value = (sprintf('%02b', value).length / 8.0).ceil.to_i
+    buffer = (length_of_value - 1).times.map { 0 }.push(value).pack('C*')
+    write_var_octet_string(buffer)
   end
 
   def write_octet_string(_value, length)
@@ -29,10 +27,10 @@ class CryptoconditionsRuby::Utils::Predictor
   def write_var_octet_string(value)
     skip(1)
     if value.length > 127
-      length_of_length = (sprintf('%02b', buffer.length).length / 8.0).ceil.to_i
+      length_of_length = (sprintf('%02b', value.length).length / 8.0).ceil.to_i
       skip(length_of_length)
     end
-    self.skip(value.length)
+    skip(value.length)
   end
 
   def write(in_bytes)
