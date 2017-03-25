@@ -8,5 +8,5 @@ module CryptoconditionsRuby
     autoload :Reader, 'cryptoconditions_ruby/utils/reader'
     autoload :Bytes, 'cryptoconditions_ruby/utils/bytes'
   end
-  # Your code goes here...
+  autoload :TypeRegistry, 'cryptoconditions_ruby/type_registry'
 end
