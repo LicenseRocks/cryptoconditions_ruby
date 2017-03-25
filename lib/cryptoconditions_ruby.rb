@@ -5,6 +5,8 @@ module CryptoconditionsRuby
     autoload :Writer, 'cryptoconditions_ruby/utils/writer'
     autoload :Hasher, 'cryptoconditions_ruby/utils/hasher'
     autoload :Predictor, 'cryptoconditions_ruby/utils/predictor'
+    autoload :Reader, 'cryptoconditions_ruby/utils/reader'
+    autoload :Bytes, 'cryptoconditions_ruby/utils/bytes'
   end
   # Your code goes here...
 end
