@@ -7,6 +7,9 @@ module CryptoconditionsRuby
     autoload :Predictor, 'cryptoconditions_ruby/utils/predictor'
     autoload :Reader, 'cryptoconditions_ruby/utils/reader'
     autoload :Bytes, 'cryptoconditions_ruby/utils/bytes'
+    autoload :Base58, 'cryptoconditions_ruby/utils/base58'
+    autoload :Base16, 'cryptoconditions_ruby/utils/base16'
   end
   autoload :TypeRegistry, 'cryptoconditions_ruby/type_registry'
+  autoload :Crypto, 'cryptoconditions_ruby/crypto'
 end
