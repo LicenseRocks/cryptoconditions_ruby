@@ -1,0 +1,26 @@
+AllCops:
+  TargetRubyVersion: 2.2
+Metrics/LineLength:
+  Max: 100
+  Exclude:
+    - 'spec/*/**'
+Metrics/BlockLength:
+  Exclude:
+    - 'spec/*/**'
+Style/ExtraSpacing:
+  Exclude:
+    - 'cryptoconditions_ruby.gemspec'
+Style/PercentLiteralDelimiters:
+  Exclude:
+    - 'cryptoconditions_ruby.gemspec'
+Style/SpaceAroundOperators:
+  Exclude:
+    - 'cryptoconditions_ruby.gemspec'
+Style/StringLiterals:
+  Exclude:
+    - 'Rakefile'
+    - 'bin/console'
+    - 'cryptoconditions_ruby.gemspec'
+Style/UnneededPercentQ:
+  Exclude:
+    - 'cryptoconditions_ruby.gemspec'
