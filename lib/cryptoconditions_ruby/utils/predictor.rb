@@ -1,4 +1,3 @@
-require 'pry'
 class CryptoconditionsRuby::Utils::Predictor
   attr_accessor :size
 

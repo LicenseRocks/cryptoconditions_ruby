@@ -1,4 +1,3 @@
-require 'pry'
 class CryptoconditionsRuby::Utils::Reader
   HIGH_BIT = 0x80
   LOWER_SEVEN_BITS = 0x7F

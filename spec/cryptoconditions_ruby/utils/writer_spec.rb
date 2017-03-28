@@ -1,5 +1,4 @@
 require 'spec_helper'
-require 'pry'
 
 describe CryptoconditionsRuby::Utils::Writer do
   subject { described_class.new }
