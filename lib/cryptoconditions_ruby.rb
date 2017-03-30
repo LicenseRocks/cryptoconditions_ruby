@@ -12,4 +12,5 @@ module CryptoconditionsRuby
   end
   autoload :TypeRegistry, 'cryptoconditions_ruby/type_registry'
   autoload :Crypto, 'cryptoconditions_ruby/crypto'
+  autoload :Fulfillment, 'cryptoconditions_ruby/fulfillment'
 end

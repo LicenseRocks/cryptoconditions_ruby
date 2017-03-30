@@ -4,34 +4,24 @@ require 'rbnacl'
 
 module CryptoconditionsRuby
   module Crypto
-    def self.ed25519_generate_key_pair
-      sk = Ed25519SigningKey.generate
-      private_value_base58 = sk.private_key
-      public_value_compressed_base58 = sk.public_key
-      [private_value_base58, public_value_compressed_base58]
-    end
+    module Helpers
+      def ed25519_generate_key_pair
+        sk = Ed25519SigningKey.generate
+        private_value_base58 = sk.private_key
+        public_value_compressed_base58 = sk.public_key
+        [private_value_base58, public_value_compressed_base58]
+      end
 
-    def self.base64_add_padding(data)
-      data = data.encode('utf-8') if data.is_a?(String)
-      missing_padding = (4 - data.length) % 4
-      data += '=' * missing_padding if missing_padding
-      data
-    end
+      def base64_add_padding(data)
+        data = data.encode('utf-8') if data.is_a?(String)
+        missing_padding = (4 - data.length) % 4
+        data += '=' * missing_padding if missing_padding
+        data
+      end
 
-    def self.base64_remove_padding(data)
-      data = data.encode('utf-8') if data.is_a?(String)
-      data.sub(/=+\Z/, '')
-    end
-
-    def get_nacl_encoder(encoding)
-      case encoding
-      when 'base58' then Base58Encoder
-      when 'base64' then Base64Encoder
-      when 'base32' then Base32Encoder
-      when 'base16' then Base16Encoder
-      when 'hex' then HexEncoder
-      when 'bytes' then RawEncoder
-      else raise UnknownEncodingError.new("Unknown or unsupported encoding")
+      def base64_remove_padding(data)
+        data = data.encode('utf-8') if data.is_a?(String)
+        data.sub(/=+\Z/, '')
       end
     end
 

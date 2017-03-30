@@ -1,29 +1,31 @@
 require 'spec_helper'
 
 module CryptoconditionsRuby
-  describe Crypto do
-    describe '.ed25519_generate_key_pair' do
-      it 'generates a key pair' do
-        expect(described_class.ed25519_generate_key_pair).to be_an(Array)
-      end
-    end
-
-    describe '.base64_add_padding' do
-      it 'adds padding if missing' do
-        expect(described_class.base64_add_padding('hi there!')).to eq('hi there!===')
-        expect(described_class.base64_add_padding('hi there')).to eq('hi there')
-      end
-    end
-
-    describe '.base64_removes_padding' do
-      it 'removes padding if existing' do
-        expect(described_class.base64_remove_padding('hi there!===')).to eq('hi there!')
-        expect(described_class.base64_add_padding('hi there')).to eq('hi there')
-      end
-    end
-  end
-
   module Crypto
+    describe Helpers do
+      let(:klass) { Class.new { include Helpers } }
+
+      describe 'ed25519_generate_key_pair' do
+        it 'generates a key pair' do
+          expect(klass.new.ed25519_generate_key_pair).to be_an(Array)
+        end
+      end
+
+      describe 'base64_add_padding' do
+        it 'adds padding if missing' do
+          expect(klass.new.base64_add_padding('hi there!')).to eq('hi there!===')
+          expect(klass.new.base64_add_padding('hi there')).to eq('hi there')
+        end
+      end
+
+      describe 'base64_removes_padding' do
+        it 'removes padding if existing' do
+          expect(klass.new.base64_remove_padding('hi there!===')).to eq('hi there!')
+          expect(klass.new.base64_add_padding('hi there')).to eq('hi there')
+        end
+      end
+    end
+
     context 'encoders' do
       shared_examples 'an encoder and decoder' do
         let(:message) do
