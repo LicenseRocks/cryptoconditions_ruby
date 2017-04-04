@@ -30,7 +30,7 @@ module CryptoconditionsRuby
 
       context 'fulfillment is valid' do
         it 'initializes the correct fulfillment and parses the payload' do
-          pending
+          skip 'need to implement other stuff first'
         end
       end
     end
