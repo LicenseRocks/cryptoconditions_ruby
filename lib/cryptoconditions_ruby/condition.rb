@@ -9,7 +9,9 @@ module CryptoconditionsRuby
 
     def self.from_uri(serialized_condition)
       return serialized_condition if serialized_condition.is_a?(Condition)
-      raise TypeError, 'Serialized condition must be a string' unless serialized_condition.is_a?(String)
+      unless serialized_condition.is_a?(String)
+        raise TypeError, 'Serialized condition must be a string'
+      end
 
       pieces = serialized_condition.split(':')
       unless pieces.first == 'cc'
@@ -51,12 +53,13 @@ module CryptoconditionsRuby
     end
 
     def serialize_uri
-      'cc:{type_id}:{bitmask}:{hash}:{max_fulfillment_length}' % {
-        type_id: type_id,
-        bitmask: bitmask,
-        hash: base64_remove_padding(Base64.urlsafe_encode64(hash)).decode('utf-8'),
-        max_fulfillment_length: max_fulfillment_length
-      }
+      format(
+        'cc:%x:%x:%s:%s',
+        type_id,
+        bitmask,
+        base64_remove_padding(Base64.urlsafe_encode64(hash)).decode('utf-8'),
+        max_fulfillment_length
+      )
     end
 
     def serialize_binary
@@ -66,6 +69,49 @@ module CryptoconditionsRuby
       writer.write_var_octet_string(hash)
       writer.write_var_uint(max_fulfillment_length)
       writer.buffer
+    end
+
+    def parse_binary(reader)
+      self.type_id = reader.read_uint16
+      self.bitmask = reader.read_var_uint
+
+      self.hash = reader.read_var_octet_string
+      self.max_fulfillment_length = reader.read_var_uint
+    end
+
+    def to_dict
+      {
+        'type' => 'condition',
+        'type_id' => type_id,
+        'bitmask' => bitmask,
+        'hash' => Utils::Base58.encode(hash),
+        'max_fulfillment_length' => max_fulfillment_length
+      }
+    end
+
+    def parse_dict(data)
+      self.type_id = data['type_id']
+      self.bitmask = data['bitmask']
+
+      self.hash = Utils::Base58.encode(data['hash'])
+      self.max_fulfillment_length = data['max_fulfillment_length']
+    end
+
+    def validate
+      TypeRegistry.get_class_from_type_id(type_id)
+
+      if bitmask > Condition::MAX_SAFE_BITMASK
+        raise ValueError, 'Bitmask too large to be safely represented'
+      end
+
+      if bitmask & ~Condition::SUPPORTED_BITMASK
+        raise ValueError, 'Condition requested unsupported feature suites'
+      end
+
+      if max_fulfillment_length > Condition::MAX_FULFILLMENT_LENGTH
+        raise ValueError, 'Condition requested too large of a max fulfillment size'
+      end
+      true
     end
   end
 end

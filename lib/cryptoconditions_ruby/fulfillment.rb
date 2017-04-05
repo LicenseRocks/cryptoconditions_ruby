@@ -92,7 +92,8 @@ module CryptoconditionsRuby
     end
 
     def serialize_uri
-      'cf:{:x}:{}'.format(
+      format(
+        'cf:%x:%s',
         type_id,
         base64_remove_padding(
           Base64.urlsafe_decode64(serialize_payload)
