@@ -1,5 +1,16 @@
+require 'base64'
+
 module CryptoconditionsRuby
+  CONDITION_REGEX = \
+    /^cc:([1-9a-f][0-9a-f]{0,3}|0):[1-9a-f][0-9a-f]{0,15}:[a-zA-Z0-9_-]{0,86}:([1-9][0-9]{0,17}|0)$/
+
+  CONDITION_REGEX_STRICT = \
+    /^cc:([1-9a-f][0-9a-f]{0,3}|0):[1-9a-f][0-9a-f]{0,7}:[a-zA-Z0-9_-]{0,86}:([1-9][0-9]{0,17}|0)$/
+
   class Condition
+    extend Crypto::Helpers
+    include Crypto::Helpers
+
     MAX_SAFE_BITMASK = 0xffffffff
     SUPPORTED_BITMASK = 0x3f
     MAX_FULFILLMENT_LENGTH = 65_535
@@ -18,14 +29,13 @@ module CryptoconditionsRuby
         raise TypeError, 'Serialized condition must start with "cc:"'
       end
 
-      unless serialized_fulfillment.match(Condition::CONDITION_REGEX_STRICT)
+      unless serialized_condition.match(CONDITION_REGEX_STRICT)
         raise TypeError, 'Invalid condition format'
       end
 
       new.tap do |condition|
         condition.type_id = pieces[1].to_i(16)
         condition.bitmask = pieces[2].to_i(16)
-        condition.hash = base64.urlsafe_b64decode(base64_add_padding(pieces[3]))
         condition.hash = Base64.urlsafe_decode64(base64_add_padding(pieces[3]))
         condition.max_fulfillment_length = pieces[4].to_i
       end
@@ -46,10 +56,12 @@ module CryptoconditionsRuby
 
     def hash
       raise TypeError unless @hash
+      @hash
     end
 
     def max_fulfillment_length
       raise TypeError unless @max_fulfillment_length.is_a?(Integer)
+      @max_fulfillment_length
     end
 
     def serialize_uri
@@ -57,7 +69,7 @@ module CryptoconditionsRuby
         'cc:%x:%x:%s:%s',
         type_id,
         bitmask,
-        base64_remove_padding(Base64.urlsafe_encode64(hash)).decode('utf-8'),
+        base64_remove_padding(Base64.urlsafe_encode64(hash)),
         max_fulfillment_length
       )
     end

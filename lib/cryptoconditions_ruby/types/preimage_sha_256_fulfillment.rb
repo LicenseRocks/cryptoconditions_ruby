@@ -1,4 +1,4 @@
-module Cryptoconditions
+module CryptoconditionsRuby
   module Types
     class PreimageSha256Fulfillment < BaseSha256Fulfillment
       TYPE_ID = 0

@@ -1,4 +1,4 @@
-module Cryptoconditions
+module CryptoconditionsRuby
   TIMESTAMP_REGEX = /^\d{10}(\.\d+)?$/
 
   def timestamp
@@ -42,6 +42,5 @@ module Cryptoconditions
         now.to_f <= expire_time.to_f
       end
     end
-
   end
 end

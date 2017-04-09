@@ -1,6 +1,6 @@
-module Cryptoconditions
+module CryptoconditionsRuby
   module Types
-    class Base256Fulfillment < Fulfillment
+    class BaseSha256Fulfillment < Fulfillment
       def generate_hash
         hasher = Utils::Hasher.new('sha256')
         write_hash_payload(hasher)

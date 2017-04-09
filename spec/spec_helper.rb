@@ -3,3 +3,4 @@ require "cryptoconditions_ruby"
 require_relative 'conftest'
 
 include Conftest
+include CryptoconditionsRuby::Utils::Hexlify
