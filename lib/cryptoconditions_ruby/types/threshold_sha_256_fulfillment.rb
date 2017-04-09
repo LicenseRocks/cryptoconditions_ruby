@@ -4,7 +4,7 @@ module CryptoconditionsRuby
     CONDITION = 'condition'
     FULFILLMENT = 'fulfillment'
 
-    class ThresholdSha256Fulfillment < Base256Fulfillment
+    class ThresholdSha256Fulfillment < BaseSha256Fulfillment
       TYPE_ID = 2
       FEATURE_BITMASK = 0x09
 

@@ -74,7 +74,7 @@ class CryptoconditionsRuby::Utils::Writer
     out = in_bytes
     if (out.is_a?(String) && out.encoding.to_s == 'ASCII-8BIT') || out.is_a?(Array)
       out = out.bytes if out.is_a?(String)
-      out = out.pack("C*")
+      out = out.pack('C*')
     else
       out = out.encode('utf-8')
     end

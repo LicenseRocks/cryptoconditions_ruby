@@ -1,4 +1,4 @@
-module Cryptoconditions
+module CryptoconditionsRuby
   CONDITION = 'condition'.freeze
   FULFILLMENT = 'fulfillment'.freeze
 

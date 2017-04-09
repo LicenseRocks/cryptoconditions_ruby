@@ -22,6 +22,6 @@ class CryptoconditionsRuby::TypeRegistry
   end
 
   def self.register_type(cls)
-    registered_types.push({'type_id' => cls.TYPE_ID, 'class' => cls})
+    registered_types.push({'type_id' => cls::TYPE_ID, 'class' => cls})
   end
 end

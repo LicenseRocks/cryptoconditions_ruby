@@ -18,7 +18,7 @@ module CryptoconditionsRuby
       end
 
       def write_hash_payload(hasher)
-        unless hasher.is_a?(Hasher)
+        unless hasher.is_a?(Utils::Hasher)
           raise TypeError, 'hasher must be a Hasher instance'
         end
         unless preimage
@@ -28,14 +28,14 @@ module CryptoconditionsRuby
       end
 
       def parse_payload(reader, payload_size)
-        unless reader.is_a?(Reader)
+        unless reader.is_a?(Utils::Reader)
           raise TypeError, 'reader must be a Reader instance'
         end
         self.preimage = reader.read(payload_size)
       end
 
       def write_payload(writer)
-        unless [Writer, Predictor].include?(writer.class)
+        unless [Utils::Writer, Utils::Predictor].include?(writer.class)
           raise TypeError, 'writer must be a Writer instance'
         end
         raise TypeError, 'Preimage must be specified' unless preimage

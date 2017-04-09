@@ -4,6 +4,7 @@ module CryptoconditionsRuby
   FULFILLMENT_REGEX = /^cf:([1-9a-f][0-9a-f]{0,3}|0):[a-zA-Z0-9_-]*$/
 
   class Fulfillment
+    extend Crypto::Helpers
     include Crypto::Helpers
     TYPE_ID = nil
     REGEX = FULFILLMENT_REGEX
@@ -16,7 +17,7 @@ module CryptoconditionsRuby
         raise TypeError, 'Serialized fulfillment must be a string'
       end
 
-      pieces = serialized_fulfillment.split(':')
+      pieces = serialized_fulfillment.split(':', -1)
 
       unless pieces.first == 'cf'
         raise TypeError, 'Serialized fulfillment must start with "cf:"'
@@ -32,12 +33,12 @@ module CryptoconditionsRuby
       cls = TypeRegistry.get_class_from_type_id(type_id)
       fulfillment = cls.new
 
-      fulfillment.parse_payload(Reader.from_source(payload), payload.length)
+      fulfillment.parse_payload(Utils::Reader.from_source(payload), payload.length)
       fulfillment
     end
 
     def self.from_binary(reader)
-      reader = Reader.from_source(reader)
+      reader = Utils::Reader.from_source(reader)
 
       cls_type = reader.read_uint16
       cls = TypeRegistry.get_class_from_type_id(cls_type)
@@ -86,7 +87,7 @@ module CryptoconditionsRuby
     end
 
     def calculate_max_fulfillment_length
-      predictor = Predictor.new
+      predictor = Utils::Predictor.new
       write_payload(predictor)
       predictor.size
     end
@@ -102,14 +103,14 @@ module CryptoconditionsRuby
     end
 
     def serialize_binary
-      writer = Writer.new
+      writer = Utils::Writer.new
       writer.write_uint16(type_id)
       writer.write_var_octet_string(serialize_payload)
       writer.buffer
     end
 
     def serialize_payload
-      writer = Writer.new
+      writer = Utils::Writer.new
       write_payload(writer)
       writer.buffer
     end
