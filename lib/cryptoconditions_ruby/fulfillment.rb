@@ -62,7 +62,7 @@ module CryptoconditionsRuby
     end
 
     def bitmask
-      FEATURE_BITMASK
+      self.class::FEATURE_BITMASK
     end
 
     def condition

@@ -90,6 +90,14 @@ module CryptoconditionsRuby
   end
 
   context 'Ed25519Fulfillment' do
+    before do
+      TypeRegistry.register_type(Types::PreimageSha256Fulfillment)
+      TypeRegistry.register_type(Types::ThresholdSha256Fulfillment)
+      TypeRegistry.register_type(Types::InvertedThresholdSha256Fulfillment)
+      TypeRegistry.register_type(Types::Ed25519Fulfillment)
+      TypeRegistry.register_type(Types::TimeoutFulfillment)
+    end
+
     context 'test_ilp_keys' do
       let(:sk) { Crypto::Ed25519SigningKey.new(sk_ilp['b58']) }
       let(:vk) { Crypto::Ed25519VerifyingKey.new(vk_ilp['b58']) }
@@ -97,6 +105,16 @@ module CryptoconditionsRuby
       it 'returns a correctly encoded signing key' do
         expect(sk.encode('base64')).to eq(sk_ilp['b64'])
         expect(hexlify(sk.encode('bytes').slice(0...32))).to eq(sk_ilp['hex'])
+      end
+    end
+
+    context 'test create' do
+      let(:fulfillment1) { Types::Ed25519Fulfillment.new(vk_ilp['b58']) }
+      let(:vk) { Crypto::Ed25519VerifyingKey.new(vk_ilp['b58']) }
+      let(:fulfillment2) { Types::Ed25519Fulfillment.new(vk) }
+
+      it 'works' do
+        expect(fulfillment1.condition.serialize_uri).to eq(fulfillment2.condition.serialize_uri)
       end
     end
   end

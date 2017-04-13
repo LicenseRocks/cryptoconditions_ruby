@@ -10,8 +10,8 @@ module CryptoconditionsRuby
       attr_accessor :public_key, :signature
       private :public_key, :signature
       def initialize(public_key = nil)
-        public_key = VerifyingKey.new(public_key) if public_key.is_a?(String)
-        raise TypeError unless public_key.is_a?(VerifyingKey)
+        public_key = Crypto::Ed25519VerifyingKey.new(public_key) if public_key.is_a?(String)
+        raise TypeError unless public_key.is_a?(Crypto::Ed25519VerifyingKey)
         @public_key = public_key
         @signature = nil
       end
@@ -63,7 +63,7 @@ module CryptoconditionsRuby
       end
 
       def parse_dict(data)
-        self.public_key = VerifyingKey(data['public_key'])
+        self.public_key = Crypto::Ed25519VerifyingKey.new(data['public_key'])
         self.signature = (Base58.decode(data['signature']) if data['signature'])
       end
 

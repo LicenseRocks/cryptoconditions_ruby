@@ -150,8 +150,8 @@ module CryptoconditionsRuby
       def initialize(key = nil, encoding = nil)
         @key = key
         @encoding = encoding || 'base58'
-        @encoder = Crypto.get_encoder(encoding)
-        super(encoder.new.decode(key))
+        @encoder = Crypto.get_encoder(@encoding)
+        super(@encoder.new.decode(@key))
       end
 
       def verify(signature, data)
