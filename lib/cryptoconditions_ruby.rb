@@ -10,6 +10,7 @@ module CryptoconditionsRuby
     autoload :Base58, 'cryptoconditions_ruby/utils/base58'
     autoload :Base16, 'cryptoconditions_ruby/utils/base16'
     autoload :Hexlify, 'cryptoconditions_ruby/utils/hexlify'
+    autoload :ByteArray, 'cryptoconditions_ruby/utils/byte_array'
   end
   module Types
     autoload :BaseSha256Fulfillment, 'cryptoconditions_ruby/types/base_sha_256_fulfillment'

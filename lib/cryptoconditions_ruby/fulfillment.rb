@@ -58,7 +58,7 @@ module CryptoconditionsRuby
     end
 
     def type_id
-      TYPE_ID
+      self.class::TYPE_ID
     end
 
     def bitmask
@@ -98,7 +98,7 @@ module CryptoconditionsRuby
         type_id,
         base64_remove_padding(
           Base64.urlsafe_decode64(serialize_payload)
-        ).decode('utf-8')
+        )
       )
     end
 
