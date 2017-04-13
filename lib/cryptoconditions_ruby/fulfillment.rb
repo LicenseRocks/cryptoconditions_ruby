@@ -52,7 +52,7 @@ module CryptoconditionsRuby
     def self.from_dict(data)
       cls_type = data['type_id']
       cls = TypeRegistry.get_class_from_type_id(cls_type)
-      fulfillment = cls
+      fulfillment = cls.new
       fulfillment.parse_dict(data)
       fulfillment
     end

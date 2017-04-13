@@ -49,7 +49,13 @@ module CryptoconditionsRuby
     end
 
     context 'test_fulfillment_serialize_to_dict' do
+      let(:parsed_fulfillment) { Fulfillment.from_dict(fulfillment.to_dict) }
 
+      it 'displays the fulfillment in a hash format' do
+        expect(parsed_fulfillment.serialize_uri).to eq(fulfillment.serialize_uri)
+        expect(parsed_fulfillment.condition.serialize_uri).to eq(fulfillment.condition.serialize_uri)
+        expect(parsed_fulfillment.to_dict).to eq(fulfillment.to_dict)
+      end
     end
 
     context 'test_deserialize_condition_and_validate_fulfillment' do
@@ -60,21 +66,6 @@ module CryptoconditionsRuby
     end
   end
   #class TestSha256Fulfillment:
-      #def test_deserialize_and_validate_fulfillment(self, fulfillment_sha256):
-          #fulfillment = Fulfillment.from_uri(fulfillment_sha256['fulfillment_uri'])
-
-          #assert fulfillment.serialize_uri() == fulfillment_sha256['fulfillment_uri']
-          #assert fulfillment.condition.serialize_uri() == fulfillment_sha256['condition_uri']
-          #assert fulfillment.validate()
-
-      #def test_fulfillment_serialize_to_dict(self, fulfillment_sha256):
-          #fulfillment = Fulfillment.from_uri(fulfillment_sha256['fulfillment_uri'])
-          #parsed_fulfillment = fulfillment.from_dict(fulfillment.to_dict())
-
-          #assert parsed_fulfillment.serialize_uri() == fulfillment.serialize_uri()
-          #assert parsed_fulfillment.condition.serialize_uri() == fulfillment.condition.serialize_uri()
-          #assert parsed_fulfillment.to_dict() == fulfillment.to_dict()
-
       #def test_deserialize_condition_and_validate_fulfillment(self, fulfillment_sha256):
           #condition = Condition.from_uri(fulfillment_sha256['condition_uri'])
           #fulfillment = PreimageSha256Fulfillment()

@@ -48,7 +48,7 @@ module CryptoconditionsRuby
           'type' => 'fulfillment',
           'type_id' => TYPE_ID,
           'bitmask' => bitmask,
-          'preimage' => preimage.decode
+          'preimage' => preimage
         }
       end
 
