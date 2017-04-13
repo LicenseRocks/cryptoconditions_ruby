@@ -96,6 +96,7 @@ module CryptoconditionsRuby
 
       it 'returns a correctly encoded signing key' do
         expect(sk.encode('base64')).to eq(sk_ilp['b64'])
+        expect(hexlify(sk.encode('bytes').slice(0...32))).to eq(sk_ilp['hex'])
       end
     end
   end
