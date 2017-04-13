@@ -4,6 +4,19 @@ require 'rbnacl'
 
 module CryptoconditionsRuby
   module Crypto
+    def self.get_encoder(encoding)
+      case encoding
+      when 'base58' then Base58Encoder
+      when 'base64' then Base64Encoder
+      when 'base32' then Base32Encoder
+      when 'base16' then Base16Encoder
+      when 'hex' then HexEncoder
+      when 'bytes' then RawEncoder
+      else
+        raise Exceptions::UnknownEncodingError, 'Unknown or unsupported encoding'
+      end
+    end
+
     module Helpers
       def ed25519_generate_key_pair
         sk = Ed25519SigningKey.generate
@@ -37,7 +50,7 @@ module CryptoconditionsRuby
 
     class Base64Encoder
       def encode(data)
-        Base64.encode64(data)
+        Base64.encode64(data).strip
       end
 
       def decode(data)
@@ -85,52 +98,41 @@ module CryptoconditionsRuby
       end
     end
 
-    class Ed25519SigningKey
+    class Ed25519SigningKey < ::RbNaCl::SigningKey
       CryptoKeypair = Struct.new(:private_key, :public_key)
 
-      attr_accessor :key, :encoder
-      private :key, :encoder
+      attr_accessor :key, :encoder, :encoding
+      private :key, :encoder, :encoding
 
-      def initialize(encoder: Base58Encoder, key: nil)
-        @encoder = encoder
+      def initialize(key = nil, encoding = nil)
         @key = key
+        @encoding = encoding || 'base58'
+        @encoder = Crypto.get_encoder(@encoding)
+        super(@encoder.new.decode(@key))
       end
 
       def self.generate
-        inst = new
         encoder = Base58Encoder.new
-
-        CryptoKeypair.new(
-          encoder.encode(inst.signing_key.to_s),
-          encoder.encode(inst.verify_key.to_s)
-        )
+        new(encoder.encode(::RbNaCl::Random.random_bytes(RbNaCl::Signatures::Ed25519::SEEDBYTES)))
       end
 
-      def verifying_key
-        Ed25519VerifyingKey.new(key: encoder.new.encode(verify_key.to_s), encoder: encoder)
+      def get_verifying_key
+        Ed25519VerifyingKey.new(encoder.new.encode(verify_key.to_s), encoding)
       end
 
-      def sign(data)
-        encoder.new.encode(raw_sign(data))
+      def sign(data, encoding = nil)
+        encoder = Crypto.get_encoder(encoding || 'base58')
+        encoder.new.encode(super(data))
       end
 
-      def raw_sign(data)
-        signing_key.sign(data)
-      end
-
-      def signing_key
-        @signing_key ||= generate_signing_key
-      end
-
-      def verify_key
-        @verify_key ||= signing_key.verify_key
-      end
-
-      def encode
-        encoder.encode(signing_key)
+      def encode(encoding = 'base58')
+        encoder = Crypto.get_encoder(encoding).new
+        encoder.encode(self.to_s)
       end
 
       private
+
+
 
       def generate_signing_key
         if key
@@ -142,11 +144,13 @@ module CryptoconditionsRuby
     end
 
     class Ed25519VerifyingKey < ::RbNaCl::VerifyKey
-      attr_accessor :encoder
-      private :encoder
+      attr_accessor :key, :encoder, :encoding
+      private :key, :encoder, :encoding
 
-      def initialize(key: nil, encoder: Base58Encoder)
-        @encoder = encoder
+      def initialize(key = nil, encoding = nil)
+        @key = key
+        @encoding = encoding || 'base58'
+        @encoder = Crypto.get_encoder(encoding)
         super(encoder.new.decode(key))
       end
 

@@ -62,7 +62,7 @@ module CryptoconditionsRuby
       end
 
       describe '#sign' do
-        subject { described_class.new(key: Array.new(32) { '1' }.join) }
+        subject { described_class.new(Array.new(32) { '1' }.join) }
 
         it 'returns the data, signed and encoded' do
           expect(subject.sign("I'm a little teapot")).to eq(
@@ -73,7 +73,7 @@ module CryptoconditionsRuby
     end
 
     describe Ed25519VerifyingKey do
-      let(:signing_key) { Ed25519SigningKey.new(key: Array.new(32) { '1' }.join) }
+      let(:signing_key) { Ed25519SigningKey.new(Array.new(32) { '1' }.join) }
       let(:message) { "I'm a little teapot" }
       let(:signature) { signing_key.sign(message) }
       subject { signing_key.verifying_key }
