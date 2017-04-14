@@ -29,8 +29,8 @@ module CryptoconditionsRuby
       end
 
       def write_octet_string(buffer, length)
-        raise TypeError.new('buffer must be an array of bytes') unless value.is_a?(Array)
-        raise ArgumentError.new("Incorrect length for octet string (actual: #{buffer.length}, expected: #{value})") unless buffer.length == length
+        raise TypeError, 'buffer must be an array of bytes' unless buffer.respond_to?(:bytes)
+        raise ArgumentError, "Incorrect length for octet string (actual: #{buffer.length}, expected: #{length})" unless buffer.length == length
 
         write(buffer)
       end
@@ -47,7 +47,7 @@ module CryptoconditionsRuby
       end
 
       def write(in_bytes)
-        components.push(write_out(in_bytes))
+        components.push(in_bytes)
       end
 
       def buffer

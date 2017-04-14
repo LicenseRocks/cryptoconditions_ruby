@@ -22,16 +22,16 @@ module CryptoconditionsRuby
 
       def sign(message, private_key)
         sk = private_key
-        vk = sk.verifying_key
+        vk = sk.verify_key
 
         self.public_key = vk
 
-        self.signature = sk.sign(message)
+        self.signature = sk.sign(message, 'bytes')
       end
 
       def generate_hash
         raise ValueError, 'Requires a public publicKey' unless public_key
-        public_key
+        public_key.to_s
       end
 
       def parse_payload(reader, *_args)
@@ -43,7 +43,7 @@ module CryptoconditionsRuby
 
       def write_payload(writer)
         writer.tap do |w|
-          w.write_octet_string(public_key, Ed25519Fulfillment::PUBKEY_LENGTH)
+          w.write_octet_string(public_key.to_s, Ed25519Fulfillment::PUBKEY_LENGTH)
           w.write_octet_string(signature, Ed25519Fulfillment::SIGNATURE_LENGTH)
         end
       end
@@ -69,7 +69,7 @@ module CryptoconditionsRuby
 
       def validate(message = nil, **_kwargs)
         return false unless message && signature
-        public_key.verify(message, signature)
+        public_key.verify(signature, message)
       end
     end
   end

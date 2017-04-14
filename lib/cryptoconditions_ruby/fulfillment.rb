@@ -97,7 +97,7 @@ module CryptoconditionsRuby
         'cf:%x:%s',
         type_id,
         base64_remove_padding(
-          Base64.urlsafe_decode64(serialize_payload)
+          Base64.urlsafe_encode64(serialize_payload)
         )
       )
     end

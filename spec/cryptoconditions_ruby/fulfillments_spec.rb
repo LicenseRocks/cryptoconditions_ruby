@@ -1,6 +1,8 @@
 require 'spec_helper'
 
 module CryptoconditionsRuby
+  MESSAGE = 'Hello World! Conditions are here!'.freeze
+
   context 'Sha256Condition' do
     let(:example_condition) { fulfillment_sha256['condition_uri'] }
 
@@ -117,23 +119,26 @@ module CryptoconditionsRuby
         expect(fulfillment1.condition.serialize_uri).to eq(fulfillment2.condition.serialize_uri)
       end
     end
+
+    context 'serialize condition and validate fulfillment' do
+      let(:sk) { Crypto::Ed25519SigningKey.new(sk_ilp['b58']) }
+      let(:vk) { Crypto::Ed25519VerifyingKey.new(vk_ilp['b58']) }
+      let(:fulfillment) { Types::Ed25519Fulfillment.new(vk_ilp['b58']) }
+
+      it 'works' do
+        expect(fulfillment.condition.serialize_uri).to eq(fulfillment_ed25519['condition_uri'])
+        expect(hexlify(fulfillment.condition.hash)).to eq(fulfillment_ed25519['condition_hash'])
+        expect(fulfillment.validate).to be_falsey
+
+        fulfillment.sign(MESSAGE, sk)
+
+        expect(fulfillment.serialize_uri).to eq(fulfillment_ed25519['fulfillment_uri'])
+        expect(fulfillment.validate(MESSAGE)).to be_truthy
+      end
+    end
   end
 end
   #class TestEd25519Sha256Fulfillment:
-      #def test_ilp_keys(self, sk_ilp, vk_ilp):
-          #sk = SigningKey(sk_ilp['b58'])
-          #assert sk.encode(encoding='base64') == sk_ilp['b64']
-          #assert binascii.hexlify(sk.encode(encoding='bytes')[:32]) == sk_ilp['hex']
-
-          #vk = VerifyingKey(vk_ilp['b58'])
-          #assert vk.encode(encoding='base64') == vk_ilp['b64']
-          #assert binascii.hexlify(vk.encode(encoding='bytes')) == vk_ilp['hex']
-
-      #def test_create(self, vk_ilp):
-          #fulfillment1 = Ed25519Fulfillment(public_key=vk_ilp['b58'])
-          #fulfillment2 = Ed25519Fulfillment(VerifyingKey(vk_ilp['b58']))
-          #assert fulfillment1.condition.serialize_uri() == fulfillment2.condition.serialize_uri()
-
       #def test_serialize_condition_and_validate_fulfillment(self, sk_ilp, vk_ilp, fulfillment_ed25519):
           #sk = SigningKey(sk_ilp['b58'])
           #vk = VerifyingKey(vk_ilp['b58'])
