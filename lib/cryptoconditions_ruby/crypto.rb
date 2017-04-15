@@ -80,11 +80,11 @@ module CryptoconditionsRuby
 
     class HexEncoder
       def encode(data)
-        data.to_s.split(//).map(&:ord).map { |c| c.to_s(16) }.join
+        data.to_s.unpack('H*')[0]
       end
 
       def decode(data)
-        data.scan(/../).map(&:hex).map(&:chr).join
+        [data].pack('H*')
       end
     end
 
@@ -153,7 +153,6 @@ module CryptoconditionsRuby
       end
 
       def verify(signature, data, encoding = 'base58')
-        binding.pry
         encoder = Crypto.get_encoder(encoding)
         super(encoder.new.decode(signature), data)
       rescue ::RbNaCl::BadSignatureError

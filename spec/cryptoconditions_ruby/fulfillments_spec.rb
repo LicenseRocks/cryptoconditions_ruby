@@ -224,44 +224,35 @@ module CryptoconditionsRuby
         expect(Crypto::HexEncoder.new.encode(fulfillment.public_key)).to eq(vk_ilp['hex'])
         expect(fulfillment.validate(MESSAGE)).to be_truthy
       end
+    end
 
+    context 'deserialize fulfillment 2' do
+      let(:fulfillment) { Fulfillment.from_uri(fulfillment_ed25519_2['fulfillment_uri']) }
+      it 'works' do
+        expect(fulfillment).to be_a(Types::Ed25519Fulfillment)
+        expect(fulfillment.serialize_uri).to eq(fulfillment_ed25519_2['fulfillment_uri'])
+        expect(fulfillment.condition.serialize_uri).to eq(fulfillment_ed25519_2['condition_uri'])
+        expect(hexlify(fulfillment.condition.hash)).to eq(fulfillment_ed25519_2['condition_hash'])
+        expect(Crypto::HexEncoder.new.encode(fulfillment.public_key)).to eq(vk_ilp[2]['hex'])
+        expect(fulfillment.validate(MESSAGE)).to be_truthy
+      end
+    end
+
+    context 'serialize a deserialized fulfillment' do
+      let(:sk) { Crypto::Ed25519SigningKey.new(sk_ilp['b58']) }
+      let(:vk) { Crypto::Ed25519VerifyingKey.new(vk_ilp['b58']) }
+      let(:fulfillment) { Types::Ed25519Fulfillment.new(vk) }
+      let(:deserialized_fulfillment) { Fulfillment.from_uri(fulfillment.serialize_uri) }
+
+      it 'works' do
+        fulfillment.sign(MESSAGE, sk)
+
+        expect(fulfillment.validate(MESSAGE)).to be_truthy
+        expect(deserialized_fulfillment.serialize_uri).to eq(fulfillment.serialize_uri)
+        expect(deserialized_fulfillment.condition.serialize_uri).to eq(fulfillment.condition.serialize_uri)
+        expect(deserialized_fulfillment.public_key).to eq(fulfillment.public_key)
+        expect(deserialized_fulfillment.validate(MESSAGE)).to be_truthy
+      end
     end
   end
 end
-  #class TestEd25519Sha256Fulfillment:
-      #def test_deserialize_fulfillment(self, vk_ilp, fulfillment_ed25519):
-          #fulfillment = Fulfillment.from_uri(fulfillment_ed25519['fulfillment_uri'])
-
-          #assert isinstance(fulfillment, Ed25519Fulfillment)
-          #assert fulfillment.serialize_uri() == fulfillment_ed25519['fulfillment_uri']
-          #assert fulfillment.condition.serialize_uri() == fulfillment_ed25519['condition_uri']
-          #assert binascii.hexlify(fulfillment.condition.hash) == fulfillment_ed25519['condition_hash']
-          #assert fulfillment.public_key.encode(encoding='hex') == vk_ilp['hex']
-          #assert fulfillment.validate(MESSAGE)
-
-      #def test_deserialize_fulfillment_2(self, vk_ilp, fulfillment_ed25519_2):
-          #fulfillment = Fulfillment.from_uri(fulfillment_ed25519_2['fulfillment_uri'])
-
-          #assert isinstance(fulfillment, Ed25519Fulfillment)
-          #assert fulfillment.serialize_uri() == fulfillment_ed25519_2['fulfillment_uri']
-          #assert fulfillment.condition.serialize_uri() == fulfillment_ed25519_2['condition_uri']
-          #assert binascii.hexlify(fulfillment.condition.hash) == fulfillment_ed25519_2['condition_hash']
-          #assert fulfillment.public_key.encode(encoding='hex') == vk_ilp[2]['hex']
-          #assert fulfillment.validate(MESSAGE)
-
-      #def test_serialize_deserialize_fulfillment(self, sk_ilp, vk_ilp):
-          #sk = SigningKey(sk_ilp['b58'])
-          #vk = VerifyingKey(vk_ilp['b58'])
-
-          #fulfillment = Ed25519Fulfillment(public_key=vk)
-          #fulfillment.sign(MESSAGE, sk)
-
-          #assert fulfillment.validate(MESSAGE)
-
-          #deserialized_fulfillment = Fulfillment.from_uri(fulfillment.serialize_uri())
-          #assert isinstance(deserialized_fulfillment, Ed25519Fulfillment)
-          #assert deserialized_fulfillment.serialize_uri() == fulfillment.serialize_uri()
-          #assert deserialized_fulfillment.condition.serialize_uri() == fulfillment.condition.serialize_uri()
-          #assert deserialized_fulfillment.public_key.encode(encoding='bytes') == \
-                  #fulfillment.public_key.encode(encoding='bytes')
-          #assert deserialized_fulfillment.validate(MESSAGE)
