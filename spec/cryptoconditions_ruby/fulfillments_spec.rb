@@ -136,32 +136,33 @@ module CryptoconditionsRuby
         expect(fulfillment.validate(MESSAGE)).to be_truthy
       end
     end
+
+    context 'deserialize condition' do
+      let(:deserialized_condition) { Condition.from_uri(fulfillment_ed25519['condition_uri']) }
+
+      it 'works' do
+        expect(deserialized_condition.serialize_uri).to eq(fulfillment_ed25519['condition_uri'])
+        expect(hexlify(deserialized_condition.hash)).to eq(fulfillment_ed25519['condition_hash'])
+      end
+    end
+
+    context 'serialize signed dict to fulfillment' do
+      let(:fulfillment) { Fulfillment.from_uri(fulfillment_ed25519['fulfillment_uri']) }
+
+      it 'works' do
+        expect(fulfillment.to_dict).to eq(
+          'bitmask' => 32,
+          'public_key' => 'Gtbi6WQDB6wUePiZm8aYs5XZ5pUqx9jMMLvRVHPESTjU',
+          'signature' => '4eCt6SFPCzLQSAoQGW7CTu3MHdLj6FezSpjktE7tHsYGJ4pNSUnpHtV9XgdHF2XYd62M9fTJ4WYdhTVck27qNoHj',
+          'type' => 'fulfillment',
+          'type_id' => 4
+        )
+      end
+    end
+
   end
 end
   #class TestEd25519Sha256Fulfillment:
-      #def test_serialize_condition_and_validate_fulfillment(self, sk_ilp, vk_ilp, fulfillment_ed25519):
-          #sk = SigningKey(sk_ilp['b58'])
-          #vk = VerifyingKey(vk_ilp['b58'])
-
-          #fulfillment = Ed25519Fulfillment(public_key=vk)
-
-          #assert fulfillment.condition.serialize_uri() == fulfillment_ed25519['condition_uri']
-          #assert binascii.hexlify(fulfillment.condition.hash) == fulfillment_ed25519['condition_hash']
-
-          ## ED25519-SHA256 condition not fulfilled
-          #assert fulfillment.validate() == False
-
-          ## Fulfill an ED25519-SHA256 condition
-          #fulfillment.sign(MESSAGE, sk)
-
-          #assert fulfillment.serialize_uri() == fulfillment_ed25519['fulfillment_uri']
-          #assert fulfillment.validate(MESSAGE)
-
-      #def test_deserialize_condition(self, fulfillment_ed25519):
-          #deserialized_condition = Condition.from_uri(fulfillment_ed25519['condition_uri'])
-
-          #assert deserialized_condition.serialize_uri() == fulfillment_ed25519['condition_uri']
-          #assert binascii.hexlify(deserialized_condition.hash) == fulfillment_ed25519['condition_hash']
 
       #def test_serialize_signed_dict_to_fulfillment(self, fulfillment_ed25519):
           #fulfillment = Fulfillment.from_uri(fulfillment_ed25519['fulfillment_uri'])
