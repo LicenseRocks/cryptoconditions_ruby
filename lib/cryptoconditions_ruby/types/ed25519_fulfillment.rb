@@ -71,7 +71,7 @@ module CryptoconditionsRuby
 
       def validate(message = nil, **_kwargs)
         return false unless message && signature
-        public_key.verify(signature, message)
+        public_key.verify(signature, message, 'bytes')
       end
     end
   end

@@ -144,17 +144,19 @@ module CryptoconditionsRuby
     end
 
     class Ed25519VerifyingKey < ::RbNaCl::VerifyKey
-      attr_accessor :key, :encoder, :encoding
-      private :key, :encoder, :encoding
+      attr_accessor :key, :encoder
+      private :key, :encoder
 
       def initialize(key = nil, encoding = nil)
         @key = key
-        @encoding = encoding || 'base58'
-        @encoder = Crypto.get_encoder(@encoding)
+        encoding = encoding || 'base58'
+        @encoder = Crypto.get_encoder(encoding)
         super(@encoder.new.decode(@key))
       end
 
-      def verify(signature, data)
+      def verify(signature, data, encoding = 'base58')
+        binding.pry
+        encoder = Crypto.get_encoder(encoding)
         super(encoder.new.decode(signature), data)
       rescue ::RbNaCl::BadSignatureError
         false

@@ -157,6 +157,8 @@ module CryptoconditionsRuby
           'type' => 'fulfillment',
           'type_id' => 4
         )
+
+        expect(fulfillment.validate(MESSAGE)).to be_truthy
       end
     end
 
