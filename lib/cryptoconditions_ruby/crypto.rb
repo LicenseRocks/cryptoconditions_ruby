@@ -80,7 +80,7 @@ module CryptoconditionsRuby
 
     class HexEncoder
       def encode(data)
-        data.split(//).map(&:ord).map { |c| c.to_s(16) }.join
+        data.to_s.split(//).map(&:ord).map { |c| c.to_s(16) }.join
       end
 
       def decode(data)
@@ -131,8 +131,6 @@ module CryptoconditionsRuby
       end
 
       private
-
-
 
       def generate_signing_key
         if key

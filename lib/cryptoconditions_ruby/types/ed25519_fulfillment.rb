@@ -8,7 +8,7 @@ module CryptoconditionsRuby
       FULFILLMENT_LENGTH = PUBKEY_LENGTH + SIGNATURE_LENGTH
 
       attr_accessor :public_key, :signature
-      private :public_key, :signature
+      private :signature
       def initialize(public_key = nil)
         if public_key
           public_key = Crypto::Ed25519VerifyingKey.new(public_key) if public_key.is_a?(String)
@@ -24,7 +24,7 @@ module CryptoconditionsRuby
 
       def sign(message, private_key)
         sk = private_key
-        vk = sk.verify_key
+        vk = sk.get_verifying_key
 
         self.public_key = vk
 
@@ -66,10 +66,10 @@ module CryptoconditionsRuby
 
       def parse_dict(data)
         self.public_key = Crypto::Ed25519VerifyingKey.new(data['public_key'])
-        self.signature = (Base58.decode(data['signature']) if data['signature'])
+        self.signature = (Utils::Base58.decode(data['signature']) if data['signature'])
       end
 
-      def validate(message = nil, **_kwargs)
+      def validate(message = nil, _kwargs = {})
         return false unless message && signature
         public_key.verify(signature, message, 'bytes')
       end

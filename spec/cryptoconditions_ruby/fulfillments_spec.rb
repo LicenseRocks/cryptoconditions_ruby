@@ -123,7 +123,7 @@ module CryptoconditionsRuby
     context 'serialize condition and validate fulfillment' do
       let(:sk) { Crypto::Ed25519SigningKey.new(sk_ilp['b58']) }
       let(:vk) { Crypto::Ed25519VerifyingKey.new(vk_ilp['b58']) }
-      let(:fulfillment) { Types::Ed25519Fulfillment.new(vk_ilp['b58']) }
+      let(:fulfillment) { Types::Ed25519Fulfillment.new(vk) }
 
       it 'works' do
         expect(fulfillment.condition.serialize_uri).to eq(fulfillment_ed25519['condition_uri'])
@@ -162,61 +162,73 @@ module CryptoconditionsRuby
       end
     end
 
+    context 'serialize unsigned dict to fulfillment' do
+      let(:fulfillment) { Types::Ed25519Fulfillment.new(vk_ilp['b58']) }
+
+      it 'fails' do
+        expect(fulfillment.to_dict).to eq(
+          'bitmask' => 32,
+          'public_key' => 'Gtbi6WQDB6wUePiZm8aYs5XZ5pUqx9jMMLvRVHPESTjU',
+          'signature' => nil,
+          'type' => 'fulfillment',
+          'type_id' => 4
+        )
+
+        expect(fulfillment.validate(MESSAGE)).to be_falsey
+      end
+    end
+
+    context 'deserialize signed dict to fulfillment' do
+      let(:fulfillment) { Fulfillment.from_uri(fulfillment_ed25519['fulfillment_uri']) }
+      let(:parsed_fulfillment) { Fulfillment.from_dict(fulfillment.to_dict) }
+
+      it 'works' do
+        expect(parsed_fulfillment.serialize_uri).to eq(fulfillment.serialize_uri)
+        expect(parsed_fulfillment.condition.serialize_uri).to eq(fulfillment.condition.serialize_uri)
+        expect(parsed_fulfillment.to_dict).to eq(fulfillment.to_dict)
+      end
+    end
+
+    context 'deserialize unsigned dict to fulfillment' do
+      let(:fulfillment) { Fulfillment.from_uri(fulfillment_ed25519['fulfillment_uri']) }
+      let(:parsed_fulfillment) { Fulfillment.from_dict(fulfillment.to_dict) }
+
+      it 'works' do
+        expect(parsed_fulfillment.condition.serialize_uri).to eq(fulfillment.condition.serialize_uri)
+        expect(parsed_fulfillment.to_dict).to eq(fulfillment.to_dict)
+      end
+    end
+
+    context 'serialize deserialized condition' do
+      let(:vk) { Crypto::Ed25519VerifyingKey.new(vk_ilp['b58']) }
+      let(:fulfillment) { Types::Ed25519Fulfillment.new(vk) }
+      let(:condition) { fulfillment.condition }
+      let(:deserialized_condition) { Condition.from_uri(condition.serialize_uri) }
+
+      it 'works' do
+        expect(deserialized_condition.bitmask).to eq(condition.bitmask)
+        expect(deserialized_condition.hash).to eq(condition.hash)
+        expect(deserialized_condition.max_fulfillment_length).to eq(condition.max_fulfillment_length)
+        expect(deserialized_condition.serialize_uri).to eq(condition.serialize_uri)
+      end
+    end
+
+    context 'deserialize fulfillment' do
+      let(:fulfillment) { Fulfillment.from_uri(fulfillment_ed25519['fulfillment_uri']) }
+
+      it 'works' do
+        expect(fulfillment).to be_a(Types::Ed25519Fulfillment)
+        expect(fulfillment.serialize_uri).to eq(fulfillment_ed25519['fulfillment_uri'])
+        expect(fulfillment.condition.serialize_uri).to eq(fulfillment_ed25519['condition_uri'])
+        expect(hexlify(fulfillment.condition.hash)).to eq(fulfillment_ed25519['condition_hash'])
+        expect(Crypto::HexEncoder.new.encode(fulfillment.public_key)).to eq(vk_ilp['hex'])
+        expect(fulfillment.validate(MESSAGE)).to be_truthy
+      end
+
+    end
   end
 end
   #class TestEd25519Sha256Fulfillment:
-
-      #def test_serialize_signed_dict_to_fulfillment(self, fulfillment_ed25519):
-          #fulfillment = Fulfillment.from_uri(fulfillment_ed25519['fulfillment_uri'])
-
-          #assert fulfillment.to_dict()== \
-              #{'bitmask': 32,
-               #'public_key': 'Gtbi6WQDB6wUePiZm8aYs5XZ5pUqx9jMMLvRVHPESTjU',
-               #'signature': '4eCt6SFPCzLQSAoQGW7CTu3MHdLj6FezSpjktE7tHsYGJ4pNSUnpHtV9XgdHF2XYd62M9fTJ4WYdhTVck27qNoHj',
-               #'type': 'fulfillment',
-               #'type_id': 4}
-
-          #assert fulfillment.validate(MESSAGE) == True
-
-      #def test_serialize_unsigned_dict_to_fulfillment(self, vk_ilp):
-          #fulfillment = Ed25519Fulfillment(public_key=vk_ilp['b58'])
-
-          #assert fulfillment.to_dict() == \
-              #{'bitmask': 32,
-               #'public_key': 'Gtbi6WQDB6wUePiZm8aYs5XZ5pUqx9jMMLvRVHPESTjU',
-               #'signature': None,
-               #'type': 'fulfillment',
-               #'type_id': 4}
-          #assert fulfillment.validate(MESSAGE) == False
-
-      #def test_deserialize_signed_dict_to_fulfillment(self, fulfillment_ed25519):
-          #fulfillment = Fulfillment.from_uri(fulfillment_ed25519['fulfillment_uri'])
-          #parsed_fulfillment = fulfillment.from_dict(fulfillment.to_dict())
-
-          #assert parsed_fulfillment.serialize_uri() == fulfillment_ed25519['fulfillment_uri']
-          #assert parsed_fulfillment.condition.serialize_uri() == fulfillment.condition.serialize_uri()
-          #assert parsed_fulfillment.to_dict() == fulfillment.to_dict()
-
-      #def test_deserialize_unsigned_dict_to_fulfillment(self, vk_ilp):
-          #fulfillment = Ed25519Fulfillment(public_key=vk_ilp['b58'])
-          #parsed_fulfillment = fulfillment.from_dict(fulfillment.to_dict())
-
-          #assert parsed_fulfillment.condition.serialize_uri() == fulfillment.condition.serialize_uri()
-          #assert parsed_fulfillment.to_dict() == fulfillment.to_dict()
-
-      #def test_serialize_deserialize_condition(self, vk_ilp):
-          #vk = VerifyingKey(vk_ilp['b58'])
-
-          #fulfillment = Ed25519Fulfillment(public_key=vk)
-
-          #condition = fulfillment.condition
-          #deserialized_condition = Condition.from_uri(condition.serialize_uri())
-
-          #assert deserialized_condition.bitmask == condition.bitmask
-          #assert deserialized_condition.hash == condition.hash
-          #assert deserialized_condition.max_fulfillment_length == condition.max_fulfillment_length
-          #assert deserialized_condition.serialize_uri() == condition.serialize_uri()
-
       #def test_deserialize_fulfillment(self, vk_ilp, fulfillment_ed25519):
           #fulfillment = Fulfillment.from_uri(fulfillment_ed25519['fulfillment_uri'])
 
