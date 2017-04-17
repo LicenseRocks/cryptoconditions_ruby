@@ -99,7 +99,7 @@ module Conftest
   def fulfillment_threshold
     {
       'condition_uri' => CONDITION_THRESHOLD_SHA_ED25519_URI,
-      'condition_hash' => None,
+      'condition_hash' => nil,
       'fulfillment_uri' => FULFILLMENT_THRESHOLD_SHA_ED25519_URI
     }
   end
@@ -107,7 +107,7 @@ module Conftest
   def fulfillment_threshold_nested_and_or
     {
       'condition_uri' => CONDITION_NESTED_AND_OR_URI,
-      'condition_hash' => None,
+      'condition_hash' => nil,
       'fulfillment_uri' => FULFILLMENT_NESTED_AND_OR_URI
     }
   end

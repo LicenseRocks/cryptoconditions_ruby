@@ -124,20 +124,18 @@ module CryptoconditionsRuby
           }
         end
 
-        print(_subconditions)
-
         _subconditions.sort_by! { |x| x['weight'].abs }
 
         worst_case_fulfillments_length = total_condition_len + ThresholdSha256Fulfillment.calculate_worst_case_length(threshold, _subconditions)
 
-        if worst_case_fulfillments_length == Float::INFINITY
+        if worst_case_fulfillments_length == -Float::INFINITY
           raise StandardError, 'Insufficient subconditions/weights to meet the threshold'
         end
 
         # Calculate resulting total maximum fulfillment size
         predictor = Utils::Predictor.new
-        predictor.wr te_uint32(threshold)
-        predictor.write_var_uint(len(subconditions))
+        predictor.write_uint32(threshold)
+        predictor.write_var_uint(subconditions.length)
         subconditions.each do |c|
           predictor.write_uint8(nil)
           predictor.write_var_uint(c['weight']) unless c['weight'] == 1
@@ -185,7 +183,7 @@ module CryptoconditionsRuby
             )
           ].max
         else
-          Float::INFINITY
+          -Float::INFINITY
         end
       end
 
