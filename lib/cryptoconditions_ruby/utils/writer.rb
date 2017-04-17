@@ -8,11 +8,11 @@ module CryptoconditionsRuby
 
       def write_uint(value, length)
         raise TypeError.new('UInt must be an integer') unless value.is_a?(Integer)
-        raise TypeError.new('UInt must be positive') unless value > 0
+        raise TypeError.new('UInt must be positive') unless value >= 0
         raise TypeError.new("UInt '#{value}' does not fit in '#{length}' bytes") if sprintf('%02b', value).length > length * 8
 
-        buffer = (length - 1).times.map { 0 }.push(value).pack('C*')
-        write(buffer)
+        _buffer = (length - 1).times.map { 0 }.push(value).pack('C*')
+        write(_buffer)
       end
 
       def write_var_uint(value)
@@ -20,30 +20,31 @@ module CryptoconditionsRuby
           write_var_octet_string(value)
         else
           raise TypeError.new('UInt must be an integer') unless value.is_a?(Integer)
-          raise TypeError.new('UInt must be positive') unless value > 0
+          raise TypeError.new('UInt must be positive') unless value >= 0
 
           length_of_value = (sprintf('%02b', value).length / 8.0).ceil.to_i
-          buffer = (length_of_value - 1).times.map { 0 }.push(value).pack('C*')
-          write_var_octet_string(buffer)
+          _buffer = (length_of_value - 1).times.map { 0 }.push(value).pack('C*')
+          write_var_octet_string(_buffer)
         end
       end
 
-      def write_octet_string(buffer, length)
-        raise TypeError, 'buffer must be an array of bytes' unless buffer.respond_to?(:bytes)
-        raise ArgumentError, "Incorrect length for octet string (actual: #{buffer.length}, expected: #{length})" unless buffer.length == length
+      def write_octet_string(_buffer, length)
+        raise TypeError, '_buffer must be an array of bytes' unless _buffer.respond_to?(:bytes)
+        raise ArgumentError, "Incorrect length for octet string (actual: #{_buffer.length}, expected: #{length})" unless _buffer.length == length
 
-        write(buffer)
+        write(_buffer)
       end
 
-      def write_var_octet_string(buffer)
+      def write_var_octet_string(_buffer)
         msb = 0x80
-        if buffer.length <= 127
-          write_uint8(buffer.length)
+        if _buffer.length <= 127
+          write_uint8(_buffer.length)
         else
-          length_of_length = (format('%02b', buffer.length).length / 8.0).ceil.to_i
+          length_of_length = (format('%02b', _buffer.length).length / 8.0).ceil.to_i
           write_uint8(msb | length_of_length)
-          write_uint(buffer.length, length_of_length)
+          write_uint(_buffer.length, length_of_length)
         end
+        write(_buffer)
       end
 
       def write(in_bytes)

@@ -149,4 +149,32 @@ describe CryptoconditionsRuby::Utils::Writer do
       expect(subject.write_uint64(value)).to eq([padding + [value]].map { |ary| ary.pack("C*") })
     end
   end
+
+  context 'writing various values' do
+    let(:type_id) { 4 }
+    let(:bitmask) { 32 }
+    let(:_hash) do
+      [
+        236, 23, 43, 147, 173, 94, 86, 59, 244,
+        147, 44, 112, 225, 36, 80, 52, 195, 84,
+        103, 239, 46, 253, 77, 100, 235, 248,
+        25, 104, 52, 103, 226, 191
+      ].pack('C*')
+    end
+    let(:max_fulfillment_length) { 96 }
+
+    it 'returns the correct buffer' do
+      subject.write_uint16(type_id)
+      expect(subject.components).to eq(["\x00\x04"])
+
+      subject.write_var_uint(bitmask)
+      expect(subject.components).to eq(["\x00\x04", "\x01", ' '])
+
+      subject.write_var_octet_string(_hash)
+      expect(subject.components).to eq(["\x00\x04", "\x01", ' ', ' ', _hash])
+
+      subject.write_var_uint(max_fulfillment_length)
+      expect(subject.components).to eq(["\x00\x04", "\x01", ' ', ' ', _hash, "\x01", '`'])
+    end
+  end
 end

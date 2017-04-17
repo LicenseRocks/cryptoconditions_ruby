@@ -75,7 +75,7 @@ module CryptoconditionsRuby
     end
 
     def serialize_binary
-      writer = Writer.new
+      writer = Utils::Writer.new
       writer.write_uint16(type_id)
       writer.write_var_uint(bitmask)
       writer.write_var_octet_string(hash)

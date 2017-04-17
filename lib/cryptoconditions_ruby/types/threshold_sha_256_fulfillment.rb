@@ -8,7 +8,8 @@ module CryptoconditionsRuby
       TYPE_ID = 2
       FEATURE_BITMASK = 0x09
 
-      attr_accessor :bitmask
+      attr_accessor :bitmask, :threshold, :subconditions
+      private :bitmask, :threshold, :subconditions
       def initialize(threshold = nil)
         if threshold && (!threshold.is_a?(Integer) || threshold < 1)
           raise ValueError, "Threshold must be a integer greater than zero, was: #{threshold}"
@@ -93,7 +94,7 @@ module CryptoconditionsRuby
         raise ValueError, 'Requires subconditions' if subconditions.empty?
 
         _subconditions = subconditions.inject([]) do |store, c|
-          writer = Writer.new
+          writer = Utils::Writer.new
           writer.write_var_uint(c['weight'])
           writer.write(
             c['type'] == FULFILLMENT ? c['body'].condition_binary : c['body'].serialize_binary
@@ -112,28 +113,29 @@ module CryptoconditionsRuby
 
       def calculate_max_fulfillment_length
         total_condition_len = 0
-        subconditions = []
 
         _subconditions = subconditions.map do |c|
           condition_len = ThresholdSha256Fulfillment.predict_subcondition_length(c)
           fulfillment_len = ThresholdSha256Fulfillment.predict_subfulfillment_length(c)
           total_condition_len += condition_len
-          subconditions.push(
+          {
             'weight' => c['weight'],
             'size' => fulfillment_len - condition_len
-          )
+          }
         end
+
+        print(_subconditions)
 
         _subconditions.sort_by! { |x| x['weight'].abs }
 
         worst_case_fulfillments_length = total_condition_len + ThresholdSha256Fulfillment.calculate_worst_case_length(threshold, _subconditions)
 
-        if worst_case_fulfillments_length == Infinity
-          raise ValueError, 'Insufficient subconditions/weights to meet the threshold'
+        if worst_case_fulfillments_length == Float::INFINITY
+          raise StandardError, 'Insufficient subconditions/weights to meet the threshold'
         end
 
         # Calculate resulting total maximum fulfillment size
-        predictor = Predictor.new
+        predictor = Utils::Predictor.new
         predictor.wr te_uint32(threshold)
         predictor.write_var_uint(len(subconditions))
         subconditions.each do |c|
@@ -152,20 +154,20 @@ module CryptoconditionsRuby
         cond['body'].serialize_binary.length
       end
 
-      def predict_subfulfillment_length(cond)
+      def self.predict_subfulfillment_length(cond)
         fulfillment_len = if cond['type'] == FULFILLMENT
                             cond['body'].condition.max_fulfillment_length
                           else
                             cond['body'].max_fulfillment_length
                           end
 
-        predictor = Predictor.new
+        predictor = Utils::Predictor.new
         predictor.write_uint16(nil)
         predictor.write_var_octet_string('0' * fulfillment_len)
         predictor.size
       end
 
-      def calculate_worst_case_length(threshold, subconditions, index = 0)
+      def self.calculate_worst_case_length(threshold, subconditions, index = 0)
         return 0 if threshold <= 0
         if index < subconditions.length
           next_condition = subconditions[index]
@@ -183,7 +185,7 @@ module CryptoconditionsRuby
             )
           ].max
         else
-          Infinity
+          Float::INFINITY
         end
       end
 
@@ -281,7 +283,7 @@ module CryptoconditionsRuby
           )
           with_next['size'] < without_next['size'] ? with_next : without_next
         else
-          { 'size' => Infinity }
+          { 'size' => Float::INFINITY }
         end
       end
 
