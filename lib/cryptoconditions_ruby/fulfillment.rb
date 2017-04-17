@@ -43,7 +43,7 @@ module CryptoconditionsRuby
       cls_type = reader.read_uint16
       cls = TypeRegistry.get_class_from_type_id(cls_type)
 
-      fulfillment = cls
+      fulfillment = cls.new
       payload_length = reader.read_length_prefix
       fulfillment.parse_payload(reader, payload_length)
       fulfillment

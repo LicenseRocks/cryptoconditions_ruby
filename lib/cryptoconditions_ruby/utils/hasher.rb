@@ -14,7 +14,7 @@ class CryptoconditionsRuby::Utils::Hasher < CryptoconditionsRuby::Utils::Writer
   end
 
   def write(in_bytes)
-    digest_instance.update(write_out(in_bytes))
+    digest_instance.update(in_bytes)
   end
 
   def digest

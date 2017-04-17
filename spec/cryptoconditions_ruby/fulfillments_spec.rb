@@ -291,43 +291,27 @@ module CryptoconditionsRuby
         expect(fulfillment.validate(MESSAGE)).to be_truthy
       end
     end
+
+    context 'deserialize fulfillment' do
+      let(:num_fulfillments) { 2 }
+      let(:threshold) { 1 }
+
+      let(:fulfillment) { Fulfillment.from_uri(fulfillment_threshold['fulfillment_uri']) }
+
+      it 'works' do
+        expect(fulfillment).to be_a(Types::ThresholdSha256Fulfillment)
+        expect(fulfillment.threshold).to eq(threshold)
+        expect(fulfillment.subconditions.select { |f| f['type'] == 'fulfillment' }.length).to eq(threshold)
+        expect(fulfillment.serialize_uri).to eq(fulfillment_threshold['fulfillment_uri'])
+        expect(fulfillment.subconditions.length).to eq(num_fulfillments)
+        expect(fulfillment.validate(MESSAGE)).to be_truthy
+
+      end
+    end
   end
 end
 
 #class TestThresholdSha256Fulfillment:
-
-    #def create_fulfillment_ed25519sha256(self, sk_ilp, vk_ilp):
-        #sk = SigningKey(sk_ilp['b58'])
-        #vk = VerifyingKey(vk_ilp['b58'])
-
-        #fulfillment = Ed25519Fulfillment(public_key=vk)
-        #fulfillment.sign(MESSAGE, sk)
-        #return fulfillment
-
-    #def test_serialize_condition_and_validate_fulfillment(self,
-                                                          #fulfillment_sha256,
-                                                          #fulfillment_ed25519,
-                                                          #fulfillment_threshold):
-
-        #ilp_fulfillment_ed25519 = Fulfillment.from_uri(fulfillment_ed25519['fulfillment_uri'])
-        #ilp_fulfillment_sha = Fulfillment.from_uri(fulfillment_sha256['fulfillment_uri'])
-
-        #assert ilp_fulfillment_ed25519.validate(MESSAGE) == True
-        #assert ilp_fulfillment_sha.validate(MESSAGE) == True
-
-        #threshold = 1
-
-        ## Create a threshold condition
-        #fulfillment = ThresholdSha256Fulfillment(threshold=threshold)
-        #fulfillment.add_subfulfillment(ilp_fulfillment_ed25519)
-        #fulfillment.add_subfulfillment(ilp_fulfillment_sha)
-
-        #assert fulfillment.condition.serialize_uri() == fulfillment_threshold['condition_uri']
-        ## Note: If there are more than enough fulfilled subconditions, shorter
-        ## fulfillments will be chosen over longer ones.
-        ## thresholdFulfillmentUri.length === 65
-        #assert fulfillment.serialize_uri() == fulfillment_threshold['fulfillment_uri']
-        #assert fulfillment.validate(MESSAGE)
 
     #def test_deserialize_fulfillment(self, fulfillment_threshold):
         #num_fulfillments = 2

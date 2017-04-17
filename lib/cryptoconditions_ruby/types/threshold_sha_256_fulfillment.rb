@@ -9,7 +9,7 @@ module CryptoconditionsRuby
       FEATURE_BITMASK = 0x09
 
       attr_accessor :bitmask, :threshold, :subconditions
-      private :bitmask, :threshold, :subconditions
+      private :bitmask
       def initialize(threshold = nil)
         if threshold && (!threshold.is_a?(Integer) || threshold < 1)
           raise ValueError, "Threshold must be a integer greater than zero, was: #{threshold}"
@@ -188,7 +188,7 @@ module CryptoconditionsRuby
       end
 
       def parse_payload(reader, *args)
-        raise TypeError, 'reader must be a Reader instance' unless reader.is_a?(Reader)
+        raise TypeError, 'reader must be a Reader instance' unless reader.is_a?(Utils::Reader)
 
         self.threshold = reader.read_var_uint
         condition_count = reader.read_var_uint
@@ -200,9 +200,9 @@ module CryptoconditionsRuby
           if !fulfillment.empty? && !condition.empty?
             raise TypeError, 'Subconditions may not provide both subcondition and fulfillment.'
           elsif
-            if fulfillment.empty?
+            if !fulfillment.empty?
               add_subfulfillment(Fulfillment.from_binary(fulfillment), weight)
-            elsif condition.empty?
+            elsif !condition.empty?
               add_subcondition(Condition.from_binary(condition), weight)
             else
               raise TypeError, 'Subconditions must provide either subcondition or fulfillment.'
@@ -212,18 +212,18 @@ module CryptoconditionsRuby
       end
 
       def write_payload(writer)
-        raise TypeError, 'writer must be a Writer instance' unless writer.is_a?(Writer)
+        raise TypeError, 'writer must be a Writer instance' unless writer.is_a?(Utils::Writer)
 
         subfulfillments = subconditions.each_with_index.map do |c, i|
-          next if c['type'] == FULFILLMENT
+          next unless c['type'] == FULFILLMENT
 
           subfulfillment = c.dup
           subfulfillment.merge!(
             'index' => i,
             'size' => c['body'].serialize_binary.length,
-            'omit_size' => len(c['body'].condition_binary)
+            'omit_size' => c['body'].condition_binary.length
           )
-        end
+        end.compact
 
         smallest_set = ThresholdSha256Fulfillment.calculate_smallest_valid_fulfillment_set(
           threshold, subfulfillments
@@ -242,7 +242,7 @@ module CryptoconditionsRuby
         end
 
         serialized_subconditions = optimized_subfulfillments.map do |c|
-          writer_ = Writer.new
+          writer_ = Utils::Writer.new
           writer_.write_var_uint(c['weight'])
           writer_.write_var_octet_string(c['type'] == FULFILLMENT ? c['body'].serialize_binary : '')
           writer_.write_var_octet_string(c['type'] == CONDITION ? c['body'].serialize_binary : '')
@@ -262,10 +262,10 @@ module CryptoconditionsRuby
 
         if threshold <= 0
           { 'size' => state['size'], 'set' => state['set'] }
-        elsif state['index'] < len(fulfillments)
+        elsif state['index'] < fulfillments.length
           next_fulfillment = fulfillments[state['index']]
           with_next = ThresholdSha256Fulfillment.calculate_smallest_valid_fulfillment_set(
-            threshold - abs(next_fulfillment['weight']),
+            threshold - next_fulfillment['weight'].abs,
             fulfillments,
             'size' => state['size'] + next_fulfillment['size'],
             'index' => state['index'] + 1,
@@ -323,7 +323,7 @@ module CryptoconditionsRuby
       def validate(message = nil, kwargs)
         fulfillments = subconditions.select { |c| c['type'] == FULFILLMENT }
 
-        min_weight = Infinity
+        min_weight = Float::INFINITY
         total_weight = 0
         fulfillments.each do |fulfillment|
           min_weight = [min_weight, fulfillment['weight'].abs].max
@@ -335,10 +335,10 @@ module CryptoconditionsRuby
 
         valid_decisions = fulfillments.map do |fulfillment|
           if fulfillment['body'].validate(message, kwargs)
-            [True] * fulfillment['weight']
+            [true] * fulfillment['weight']
           end
         end.compact.flatten
-        valid_decisions >= threshold
+        valid_decisions.count >= threshold
       end
     end
   end

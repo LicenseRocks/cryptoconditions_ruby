@@ -42,7 +42,7 @@ module CryptoconditionsRuby
     end
 
     def self.from_binary(reader)
-      reader = Reader.from_source(reader)
+      reader = Utils::Reader.from_source(reader)
       new.tap do |condition|
         condition.parse_binary(reader)
       end
