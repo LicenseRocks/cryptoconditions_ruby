@@ -105,7 +105,7 @@ module CryptoconditionsRuby
       self.type_id = data['type_id']
       self.bitmask = data['bitmask']
 
-      self.hash = Utils::Base58.encode(data['hash'])
+      self.hash = Utils::Base58.decode(data['hash'])
       self.max_fulfillment_length = data['max_fulfillment_length']
     end
 

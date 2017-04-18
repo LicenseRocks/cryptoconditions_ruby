@@ -305,78 +305,91 @@ module CryptoconditionsRuby
         expect(fulfillment.serialize_uri).to eq(fulfillment_threshold['fulfillment_uri'])
         expect(fulfillment.subconditions.length).to eq(num_fulfillments)
         expect(fulfillment.validate(MESSAGE)).to be_truthy
+      end
+    end
 
+    context 'serialize signed dict to fulfillment' do
+      let(:fulfillment) { Fulfillment.from_uri(fulfillment_threshold['fulfillment_uri']) }
+
+      it 'works' do
+        expect(fulfillment.to_dict).to eq(
+          'bitmask' => 43,
+          'subfulfillments' => [
+            {
+              'bitmask' => 3,
+              'preimage' => '',
+              'type' => 'fulfillment',
+              'type_id' => 0,
+              'weight' => 1
+            },
+            {
+              'bitmask' => 32,
+              'hash' => 'Gtbi6WQDB6wUePiZm8aYs5XZ5pUqx9jMMLvRVHPESTjU',
+              'max_fulfillment_length' => 96,
+              'type' => 'condition',
+              'type_id' => 4,
+              'weight' => 1
+            }
+          ],
+          'threshold' => 1,
+          'type' => 'fulfillment',
+          'type_id' => 2
+        )
+      end
+    end
+
+    context 'serialize unsigned dict to fulfillment' do
+      let(:threshold) { 1 }
+      let(:fulfillment) { Types::ThresholdSha256Fulfillment.new(threshold) }
+
+      before do
+        fulfillment.add_subfulfillment(Types::Ed25519Fulfillment.new(Crypto::Ed25519VerifyingKey.new(vk_ilp['b58'])))
+        fulfillment.add_subfulfillment(Types::Ed25519Fulfillment.new(Crypto::Ed25519VerifyingKey.new(vk_ilp['b58'])))
+      end
+
+      it 'works' do
+        expect(fulfillment.to_dict).to eq(
+          'bitmask' => 41,
+          'subfulfillments' => [
+            {
+              'bitmask' => 32,
+              'public_key' => 'Gtbi6WQDB6wUePiZm8aYs5XZ5pUqx9jMMLvRVHPESTjU',
+              'signature' => nil,
+              'type' => 'fulfillment',
+              'type_id' => 4,
+              'weight' => 1
+            },
+            {
+              'bitmask' => 32,
+              'public_key' => 'Gtbi6WQDB6wUePiZm8aYs5XZ5pUqx9jMMLvRVHPESTjU',
+              'signature' => nil,
+              'type' => 'fulfillment',
+              'type_id' => 4,
+              'weight' => 1
+            }
+          ],
+          'threshold' => 1,
+          'type' => 'fulfillment',
+          'type_id' => 2
+        )
+      end
+    end
+
+    context 'deserialized signed dict to fulfillment' do
+      let(:fulfillment) { Fulfillment.from_uri(fulfillment_threshold['fulfillment_uri']) }
+      let(:parsed_fulfillment) { Fulfillment.from_dict(fulfillment.to_dict) }
+
+      it 'works' do
+        expect(parsed_fulfillment.serialize_uri).to eq(fulfillment_threshold['fulfillment_uri'])
+
+        expect(parsed_fulfillment.condition.serialize_uri).to eq(fulfillment.condition.serialize_uri)
+        expect(parsed_fulfillment.to_dict).to eq(fulfillment.to_dict)
       end
     end
   end
 end
 
 #class TestThresholdSha256Fulfillment:
-
-    #def test_deserialize_fulfillment(self, fulfillment_threshold):
-        #num_fulfillments = 2
-        #threshold = 1
-
-        #fulfillment = Fulfillment.from_uri(fulfillment_threshold['fulfillment_uri'])
-
-        #assert isinstance(fulfillment, ThresholdSha256Fulfillment)
-        #assert fulfillment.threshold == threshold
-        #assert len([f for f in fulfillment.subconditions if f['type'] == 'fulfillment']) == threshold
-        #assert fulfillment.serialize_uri() == fulfillment_threshold['fulfillment_uri']
-        #assert len(fulfillment.subconditions) == num_fulfillments
-        #assert fulfillment.validate(MESSAGE)
-
-    #def test_serialize_signed_dict_to_fulfillment(self, fulfillment_threshold):
-        #fulfillment = Fulfillment.from_uri(fulfillment_threshold['fulfillment_uri'])
-
-        #assert fulfillment.to_dict() == \
-            #{'bitmask': 43,
-             #'subfulfillments': [{'bitmask': 3,
-                                  #'preimage': '',
-                                  #'type': 'fulfillment',
-                                  #'type_id': 0,
-                                  #'weight': 1},
-                                 #{'bitmask': 32,
-                                  #'hash': 'Gtbi6WQDB6wUePiZm8aYs5XZ5pUqx9jMMLvRVHPESTjU',
-                                  #'max_fulfillment_length': 96,
-                                  #'type': 'condition',
-                                  #'type_id': 4,
-                                  #'weight': 1}],
-             #'threshold': 1,
-             #'type': 'fulfillment',
-             #'type_id': 2}
-
-    #def test_serialize_unsigned_dict_to_fulfillment(self, vk_ilp):
-        #fulfillment = ThresholdSha256Fulfillment(threshold=1)
-        #fulfillment.add_subfulfillment(Ed25519Fulfillment(public_key=VerifyingKey(vk_ilp['b58'])))
-        #fulfillment.add_subfulfillment(Ed25519Fulfillment(public_key=VerifyingKey(vk_ilp['b58'])))
-
-        #assert fulfillment.to_dict() == \
-            #{'bitmask': 41,
-             #'subfulfillments': [{'bitmask': 32,
-                                  #'public_key': 'Gtbi6WQDB6wUePiZm8aYs5XZ5pUqx9jMMLvRVHPESTjU',
-                                  #'signature': None,
-                                  #'type': 'fulfillment',
-                                  #'type_id': 4,
-                                  #'weight': 1},
-                                 #{'bitmask': 32,
-                                  #'public_key': 'Gtbi6WQDB6wUePiZm8aYs5XZ5pUqx9jMMLvRVHPESTjU',
-                                  #'signature': None,
-                                  #'type': 'fulfillment',
-                                  #'type_id': 4,
-                                  #'weight': 1}],
-             #'threshold': 1,
-             #'type': 'fulfillment',
-             #'type_id': 2}
-
-    #def test_deserialize_signed_dict_to_fulfillment(self, fulfillment_threshold):
-        #fulfillment = Fulfillment.from_uri(fulfillment_threshold['fulfillment_uri'])
-        #parsed_fulfillment = fulfillment.from_dict(fulfillment.to_dict())
-
-        #assert parsed_fulfillment.serialize_uri() == fulfillment_threshold['fulfillment_uri']
-        #assert parsed_fulfillment.condition.serialize_uri() == fulfillment.condition.serialize_uri()
-        #assert parsed_fulfillment.to_dict() == fulfillment.to_dict()
-
     #def test_deserialize_unsigned_dict_to_fulfillment(self, vk_ilp):
         #fulfillment = ThresholdSha256Fulfillment(threshold=1)
         #fulfillment.add_subfulfillment(Ed25519Fulfillment(public_key=VerifyingKey(vk_ilp['b58'])))
