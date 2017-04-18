@@ -35,7 +35,7 @@ module CryptoconditionsRuby
         self.preimage = data['expire_time']
       end
 
-      def validate(message = nil, now = nil, **_kwargs)
+      def validate(message: nil, now: nil, **_kwargs)
         unless now || now.match(REGEX)
           raise TypeError, "message must be of unix time format, was: #{message}"
         end

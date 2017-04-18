@@ -56,7 +56,7 @@ module CryptoconditionsRuby
         self.preimage = data['preimage'].encode
       end
 
-      def validate(*_args, **_kwargs)
+      def validate(**_kwargs)
         true
       end
     end

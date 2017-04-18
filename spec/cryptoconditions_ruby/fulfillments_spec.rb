@@ -133,7 +133,7 @@ module CryptoconditionsRuby
         fulfillment.sign(MESSAGE, sk)
 
         expect(fulfillment.serialize_uri).to eq(fulfillment_ed25519['fulfillment_uri'])
-        expect(fulfillment.validate(MESSAGE)).to be_truthy
+        expect(fulfillment.validate(message: MESSAGE)).to be_truthy
       end
     end
 
@@ -158,7 +158,7 @@ module CryptoconditionsRuby
           'type_id' => 4
         )
 
-        expect(fulfillment.validate(MESSAGE)).to be_truthy
+        expect(fulfillment.validate(message: MESSAGE)).to be_truthy
       end
     end
 
@@ -174,7 +174,7 @@ module CryptoconditionsRuby
           'type_id' => 4
         )
 
-        expect(fulfillment.validate(MESSAGE)).to be_falsey
+        expect(fulfillment.validate(message: MESSAGE)).to be_falsey
       end
     end
 
@@ -222,7 +222,7 @@ module CryptoconditionsRuby
         expect(fulfillment.condition.serialize_uri).to eq(fulfillment_ed25519['condition_uri'])
         expect(hexlify(fulfillment.condition.hash)).to eq(fulfillment_ed25519['condition_hash'])
         expect(Crypto::HexEncoder.new.encode(fulfillment.public_key)).to eq(vk_ilp['hex'])
-        expect(fulfillment.validate(MESSAGE)).to be_truthy
+        expect(fulfillment.validate(message: MESSAGE)).to be_truthy
       end
     end
 
@@ -234,7 +234,7 @@ module CryptoconditionsRuby
         expect(fulfillment.condition.serialize_uri).to eq(fulfillment_ed25519_2['condition_uri'])
         expect(hexlify(fulfillment.condition.hash)).to eq(fulfillment_ed25519_2['condition_hash'])
         expect(Crypto::HexEncoder.new.encode(fulfillment.public_key)).to eq(vk_ilp[2]['hex'])
-        expect(fulfillment.validate(MESSAGE)).to be_truthy
+        expect(fulfillment.validate(message: MESSAGE)).to be_truthy
       end
     end
 
@@ -247,11 +247,11 @@ module CryptoconditionsRuby
       it 'works' do
         fulfillment.sign(MESSAGE, sk)
 
-        expect(fulfillment.validate(MESSAGE)).to be_truthy
+        expect(fulfillment.validate(message: MESSAGE)).to be_truthy
         expect(deserialized_fulfillment.serialize_uri).to eq(fulfillment.serialize_uri)
         expect(deserialized_fulfillment.condition.serialize_uri).to eq(fulfillment.condition.serialize_uri)
         expect(deserialized_fulfillment.public_key).to eq(fulfillment.public_key)
-        expect(deserialized_fulfillment.validate(MESSAGE)).to be_truthy
+        expect(deserialized_fulfillment.validate(message: MESSAGE)).to be_truthy
       end
     end
   end
@@ -284,11 +284,11 @@ module CryptoconditionsRuby
       end
 
       it 'works' do
-        expect(ilp_fulfillment_ed25519.validate(MESSAGE)).to be_truthy
-        expect(ilp_fulfillment_sha.validate(MESSAGE)).to be_truthy
+        expect(ilp_fulfillment_ed25519.validate(message: MESSAGE)).to be_truthy
+        expect(ilp_fulfillment_sha.validate(message: MESSAGE)).to be_truthy
         expect(fulfillment.condition.serialize_uri).to eq(fulfillment_threshold['condition_uri'])
         expect(fulfillment.serialize_uri).to eq(fulfillment_threshold['fulfillment_uri'])
-        expect(fulfillment.validate(MESSAGE)).to be_truthy
+        expect(fulfillment.validate(message: MESSAGE)).to be_truthy
       end
     end
 
@@ -304,7 +304,7 @@ module CryptoconditionsRuby
         expect(fulfillment.subconditions.select { |f| f['type'] == 'fulfillment' }.length).to eq(threshold)
         expect(fulfillment.serialize_uri).to eq(fulfillment_threshold['fulfillment_uri'])
         expect(fulfillment.subconditions.length).to eq(num_fulfillments)
-        expect(fulfillment.validate(MESSAGE)).to be_truthy
+        expect(fulfillment.validate(message: MESSAGE)).to be_truthy
       end
     end
 
@@ -427,14 +427,14 @@ module CryptoconditionsRuby
         expect(parsed_fulfillment_1.condition.serialize_uri).to eq(fulfillment_1.condition.serialize_uri)
         expect(parsed_fulfillment_1.to_dict).to eq(fulfillment_1.to_dict)
         expect(parsed_fulfillment_1.subconditions.first['weight']).to eq(2)
-        expect(parsed_fulfillment_1.validate(MESSAGE)).to be_truthy
+        expect(parsed_fulfillment_1.validate(message: MESSAGE)).to be_truthy
 
         expect(parsed_fulfillment_2.subconditions.first['weight']).to eq(2)
-        expect(parsed_fulfillment_2.validate(MESSAGE)).to be_falsey
+        expect(parsed_fulfillment_2.validate(message: MESSAGE)).to be_falsey
 
         expect(parsed_fulfillment_3.condition.serialize_uri).to eq(fulfillment_3.condition.serialize_uri)
         expect(fulfillment_3.condition.serialize_uri).to_not eq(fulfillment_1.condition.serialize_uri)
-        expect(parsed_fulfillment_3.validate(MESSAGE)).to be_truthy
+        expect(parsed_fulfillment_3.validate(message: MESSAGE)).to be_truthy
 
         expect { fulfillment_4.add_subfulfillment(ilp_fulfillment, -2) }.to raise_error StandardError
       end
@@ -454,13 +454,13 @@ module CryptoconditionsRuby
       end
 
       it 'works' do
-        expect(fulfillment.validate(MESSAGE)).to be_truthy
+        expect(fulfillment.validate(message: MESSAGE)).to be_truthy
         expect(deserialized_fulfillment).to be_a(Types::ThresholdSha256Fulfillment)
         expect(deserialized_fulfillment.threshold).to eq(threshold)
         expect(deserialized_fulfillment.subconditions.select { |f| f['type'] == 'fulfillment' }.length).to eq(threshold)
         expect(deserialized_fulfillment.subconditions.length).to eq(num_fulfillments)
         expect(deserialized_fulfillment.serialize_uri).to eq(fulfillment.serialize_uri)
-        expect(deserialized_fulfillment.validate(MESSAGE)).to be_truthy
+        expect(deserialized_fulfillment.validate(message: MESSAGE)).to be_truthy
       end
     end
 
@@ -478,20 +478,20 @@ module CryptoconditionsRuby
 
       it 'works' do
         expect { fulfillment.serialize_uri }.to raise_error NoMethodError
-        expect(fulfillment.validate(MESSAGE)).to be_falsey
+        expect(fulfillment.validate(message: MESSAGE)).to be_falsey
 
         fulfillment.add_subfulfillment(ilp_fulfillment)
 
-        expect(fulfillment.validate(MESSAGE)).to be_truthy
+        expect(fulfillment.validate(message: MESSAGE)).to be_truthy
         expect(deserialized_fulfillment).to be_a(Types::ThresholdSha256Fulfillment)
         expect(deserialized_fulfillment.threshold).to eq(threshold)
         expect(deserialized_fulfillment.subconditions.select { |f| f['type'] == 'fulfillment' }.length).to eq(threshold)
         expect(deserialized_fulfillment.subconditions.length).to eq(threshold)
         expect(deserialized_fulfillment.serialize_uri).to eq(fulfillment.serialize_uri)
-        expect(deserialized_fulfillment.validate(MESSAGE)).to be_truthy
+        expect(deserialized_fulfillment.validate(message: MESSAGE)).to be_truthy
 
         fulfillment.add_subfulfillment(Types::Ed25519Fulfillment.new(Crypto::Ed25519VerifyingKey.new(vk_ilp['b58'])))
-        expect(deserialized_fulfillment.validate(MESSAGE)).to be_truthy
+        expect(deserialized_fulfillment.validate(message: MESSAGE)).to be_truthy
       end
     end
 
@@ -504,16 +504,16 @@ module CryptoconditionsRuby
       it 'works' do
         fulfillment.add_subfulfillment(ilp_fulfillment_sha)
 
-        expect(fulfillment.validate(MESSAGE)).to be_falsey
+        expect(fulfillment.validate(message: MESSAGE)).to be_falsey
 
         nested_fulfillment.add_subfulfillment(ilp_fulfillment_ed)
-        expect(nested_fulfillment.validate(MESSAGE)).to be_truthy
+        expect(nested_fulfillment.validate(message: MESSAGE)).to be_truthy
 
         nested_fulfillment.add_subfulfillment(ilp_fulfillment_ed)
-        expect(nested_fulfillment.validate(MESSAGE)).to be_truthy
+        expect(nested_fulfillment.validate(message: MESSAGE)).to be_truthy
 
         fulfillment.add_subfulfillment(nested_fulfillment)
-        expect(fulfillment.validate(MESSAGE)).to be_truthy
+        expect(fulfillment.validate(message: MESSAGE)).to be_truthy
 
         fulfillment_uri = fulfillment.serialize_uri
         expect(fulfillment.condition_uri).to eq(fulfillment_threshold_nested_and_or['condition_uri'])
@@ -529,7 +529,7 @@ module CryptoconditionsRuby
         expect(deserialized_fulfillment.subconditions.length).to eq(2)
         expect(deserialized_fulfillment.subconditions.last['body'].subconditions.length).to eq(2)
         expect(deserialized_fulfillment.serialize_uri).to eq(fulfillment_uri)
-        expect(deserialized_fulfillment.validate(MESSAGE)).to be_truthy
+        expect(deserialized_fulfillment.validate(message: MESSAGE)).to be_truthy
         expect(deserialized_fulfillment.condition.serialize_uri).to eq(condition_uri)
         vk = Utils::Base58.encode(ilp_fulfillment_ed.public_key.to_s)
         expect(fulfillment.get_subcondition_from_vk(vk).length).to eq(2)
@@ -564,7 +564,7 @@ module CryptoconditionsRuby
       it 'works' do
         fulfillment = add_nested_fulfillment.call(original_fulfillment)
 
-        expect(fulfillment.validate(MESSAGE)).to be_truthy
+        expect(fulfillment.validate(message: MESSAGE)).to be_truthy
         expect(fulfillment.subconditions.length).to eq(2)
         expect(fulfillment.subconditions.last['body']).to be_a(Types::ThresholdSha256Fulfillment)
         expect(fulfillment.subconditions.last['body'].subconditions.first['body']).to be_a(Types::ThresholdSha256Fulfillment)
@@ -576,7 +576,7 @@ module CryptoconditionsRuby
         deserialized_condition = Condition.from_uri(condition_uri)
 
         expect(deserialized_fulfillment.serialize_uri).to eq(fulfillment_uri)
-        expect(deserialized_fulfillment.validate(MESSAGE)).to be_truthy
+        expect(deserialized_fulfillment.validate(message: MESSAGE)).to be_truthy
         expect(deserialized_condition.serialize_uri).to eq(condition_uri)
       end
     end
@@ -594,7 +594,7 @@ module CryptoconditionsRuby
         it 'works' do
           expect(parsed_fulfillment.condition_uri).to eq(fulfillment.condition_uri)
           expect(parsed_fulfillment.serialize_uri).to eq(fulfillment.serialize_uri)
-          expect(parsed_fulfillment.validate(MESSAGE)).to be_falsey
+          expect(parsed_fulfillment.validate(message: MESSAGE)).to be_falsey
           expect(parsed_fulfillment.validate).to be_truthy
           expect(parsed_fulfillment).to be_a(Types::InvertedThresholdSha256Fulfillment)
         end
@@ -613,11 +613,160 @@ module CryptoconditionsRuby
         it 'works' do
           expect(parsed_fulfillment_now.condition_uri).to eq(fulfillment_now.condition_uri)
           expect(parsed_fulfillment_now.serialize_uri).to eq(fulfillment_now.serialize_uri)
-          expect(parsed_fulfillment_now.validate(nil, time_now.call)).to be_falsey
+          expect(parsed_fulfillment_now.validate(now: time_now.call)).to be_falsey
 
           expect(parsed_fulfillment_future.condition_uri).to eq(fulfillment_future.condition_uri)
           expect(parsed_fulfillment_future.serialize_uri).to eq(fulfillment_future.serialize_uri)
-          expect(parsed_fulfillment_future.validate(nil, time_now.call)).to be_truthy
+          expect(parsed_fulfillment_future.validate(now: time_now.call)).to be_truthy
+        end
+      end
+    end
+
+    context 'Escrow' do
+      context 'serialize condition and validate fulfillment' do
+        it 'works' do
+          ilp_fulfillment_sha = Fulfillment.from_uri(fulfillment_sha256['fulfillment_uri'])
+          ilp_fulfillment_ed = Fulfillment.from_uri(fulfillment_ed25519['fulfillment_uri'])
+
+          fulfillment_escrow = Types::ThresholdSha256Fulfillment.new(1)
+          fulfillment_timeout = Types::TimeoutFulfillment.new(Types::TimeoutFulfillment.timestamp(Time.now + 1_000))
+          fulfillment_timeout_inverted = Types::InvertedThresholdSha256Fulfillment.new(1)
+          fulfillment_timeout_inverted.add_subfulfillment(fulfillment_timeout)
+
+          fulfillment_and_execute = Types::ThresholdSha256Fulfillment.new(2)
+          fulfillment_and_execute.add_subfulfillment(ilp_fulfillment_ed)
+          fulfillment_and_execute.add_subfulfillment(fulfillment_timeout)
+
+          expect(fulfillment_and_execute.validate(message: MESSAGE, now: Types::TimeoutFulfillment.timestamp(Time.now))).to be_truthy
+
+          fulfillment_and_abort = Types::ThresholdSha256Fulfillment.new(2)
+          fulfillment_and_abort.add_subfulfillment(ilp_fulfillment_sha)
+          fulfillment_and_abort.add_subfulfillment(fulfillment_timeout_inverted)
+
+          expect(fulfillment_and_abort.validate(message: MESSAGE, now: Types::TimeoutFulfillment.timestamp(Time.now))).to be_falsey
+
+          fulfillment_escrow.add_subfulfillment(fulfillment_and_execute)
+          fulfillment_escrow.add_subfulfillment(fulfillment_and_abort)
+
+          parsed_fulfillment = Fulfillment.from_dict(fulfillment_escrow.to_dict())
+
+          expect(parsed_fulfillment.condition_uri).to eq(fulfillment_escrow.condition_uri)
+          expect(parsed_fulfillment.serialize_uri).to eq(fulfillment_escrow.serialize_uri)
+          expect(parsed_fulfillment.validate(message: MESSAGE, now: Types::TimeoutFulfillment.timestamp(Time.now))).to be_truthy
+        end
+      end
+
+      context 'escrow execute' do
+        it 'works' do
+          ilp_fulfillment_sha = Fulfillment.from_uri(fulfillment_sha256['fulfillment_uri'])
+          ilp_fulfillment_ed = Fulfillment.from_uri(fulfillment_ed25519['fulfillment_uri'])
+
+          time_sleep = 3
+
+          fulfillment_escrow = Types::ThresholdSha256Fulfillment.new(1)
+          fulfillment_timeout = Types::TimeoutFulfillment.new(Types::TimeoutFulfillment.timestamp(Time.now + time_sleep))
+          fulfillment_timeout_inverted = Types::InvertedThresholdSha256Fulfillment.new(1)
+          fulfillment_timeout_inverted.add_subfulfillment(fulfillment_timeout)
+
+          ## fulfill execute branch
+          fulfillment_and_execute = Types::ThresholdSha256Fulfillment.new(2)
+          fulfillment_and_execute.add_subfulfillment(ilp_fulfillment_ed)
+          fulfillment_and_execute.add_subfulfillment(fulfillment_timeout)
+
+          ## do not fulfill abort branch
+          fulfillment_and_abort = Types::ThresholdSha256Fulfillment.new(2)
+          fulfillment_and_abort.add_subcondition(ilp_fulfillment_sha.condition)
+          fulfillment_and_abort.add_subfulfillment(fulfillment_timeout_inverted)
+
+          fulfillment_escrow.add_subfulfillment(fulfillment_and_execute)
+          fulfillment_escrow.add_subfulfillment(fulfillment_and_abort)
+
+          ## in-time validation
+          expect(fulfillment_escrow.validate(message: MESSAGE, now: Types::TimeoutFulfillment.timestamp(Time.now))).to be_truthy
+
+          sleep(3)
+          ## out-of-time validation
+          expect(fulfillment_escrow.validate(message: MESSAGE, now: Types::TimeoutFulfillment.timestamp(Time.now))).to be_falsey
+        end
+      end
+
+      context 'escrow abort' do
+        it 'works' do
+          ilp_fulfillment_sha = Fulfillment.from_uri(fulfillment_sha256['fulfillment_uri'])
+          ilp_fulfillment_ed = Fulfillment.from_uri(fulfillment_ed25519['fulfillment_uri'])
+
+          time_sleep = 0
+
+          fulfillment_escrow = Types::ThresholdSha256Fulfillment.new(1)
+          fulfillment_timeout = Types::TimeoutFulfillment.new(Types::TimeoutFulfillment.timestamp(Time.now + time_sleep))
+          fulfillment_timeout_inverted = Types::InvertedThresholdSha256Fulfillment.new(1)
+          fulfillment_timeout_inverted.add_subfulfillment(fulfillment_timeout)
+
+          ## do not fulfill execute branch
+          fulfillment_and_execute = Types::ThresholdSha256Fulfillment.new(2)
+          fulfillment_and_execute.add_subcondition(ilp_fulfillment_ed.condition)
+          fulfillment_and_execute.add_subfulfillment(fulfillment_timeout)
+
+          fulfillment_and_abort = Types::ThresholdSha256Fulfillment.new(2)
+          fulfillment_and_abort.add_subfulfillment(ilp_fulfillment_sha)
+          fulfillment_and_abort.add_subfulfillment(fulfillment_timeout_inverted)
+
+          fulfillment_escrow.add_subfulfillment(fulfillment_and_execute)
+          fulfillment_escrow.add_subfulfillment(fulfillment_and_abort)
+
+          ## out-of-time validation
+          expect(fulfillment_escrow.validate(message: MESSAGE, now: Types::TimeoutFulfillment.timestamp(Time.now))).to be_truthy
+        end
+      end
+
+      context 'escrow execute abort' do
+        it 'works' do
+          ilp_fulfillment_sha = Fulfillment.from_uri(fulfillment_sha256['fulfillment_uri'])
+          ilp_fulfillment_ed = Fulfillment.from_uri(fulfillment_ed25519['fulfillment_uri'])
+
+          time_sleep = 3
+
+          fulfillment_escrow_execute = Types::ThresholdSha256Fulfillment.new(1)
+          fulfillment_timeout = Types::TimeoutFulfillment.new(Types::TimeoutFulfillment.timestamp(Time.now + time_sleep))
+          fulfillment_timeout_inverted = Types::InvertedThresholdSha256Fulfillment.new(1)
+          fulfillment_timeout_inverted.add_subfulfillment(fulfillment_timeout)
+
+          ## fulfill execute branch
+          fulfillment_and_execute = Types::ThresholdSha256Fulfillment.new(2)
+          fulfillment_and_execute.add_subfulfillment(ilp_fulfillment_ed)
+          fulfillment_and_execute.add_subfulfillment(fulfillment_timeout)
+
+          ## do not fulfill abort branch
+          fulfillment_and_abort = Types::ThresholdSha256Fulfillment.new(2)
+          fulfillment_and_abort.add_subcondition(ilp_fulfillment_sha.condition)
+          fulfillment_and_abort.add_subfulfillment(fulfillment_timeout_inverted)
+
+          fulfillment_escrow_execute.add_subfulfillment(fulfillment_and_execute)
+          fulfillment_escrow_execute.add_subfulfillment(fulfillment_and_abort)
+
+          ## in-time validation
+          expect(fulfillment_escrow_execute.validate(message: MESSAGE, now: Types::TimeoutFulfillment.timestamp(Time.now))).to be_truthy
+
+          sleep(3)
+          ## out-of-time validation
+          expect(fulfillment_escrow_execute.validate(message: MESSAGE, now: Types::TimeoutFulfillment.timestamp(Time.now))).to be_falsey
+
+          fulfillment_escrow_abort = Types::ThresholdSha256Fulfillment.new(1)
+
+          ## do not fulfill execute branch
+          fulfillment_and_execute = Types::ThresholdSha256Fulfillment.new(2)
+          fulfillment_and_execute.add_subcondition(ilp_fulfillment_ed.condition)
+          fulfillment_and_execute.add_subfulfillment(fulfillment_timeout)
+
+          ## fulfill abort branch
+          fulfillment_and_abort = Types::ThresholdSha256Fulfillment.new(2)
+          fulfillment_and_abort.add_subfulfillment(ilp_fulfillment_sha)
+          fulfillment_and_abort.add_subfulfillment(fulfillment_timeout_inverted)
+
+          fulfillment_escrow_abort.add_subfulfillment(fulfillment_and_execute)
+          fulfillment_escrow_abort.add_subfulfillment(fulfillment_and_abort)
+
+          expect(fulfillment_escrow_abort.validate(message: MESSAGE, now: Types::TimeoutFulfillment.timestamp(Time.now))).to be_truthy
         end
       end
     end
@@ -626,105 +775,6 @@ end
 
 
 #class TestEscrow:
-    #def create_fulfillment_ed25519sha256(self, sk_ilp, vk_ilp):
-        #sk = SigningKey(sk_ilp['b58'])
-        #vk = VerifyingKey(vk_ilp['b58'])
-
-        #fulfillment = Ed25519Fulfillment(public_key=vk)
-        #fulfillment.sign(MESSAGE, sk)
-        #return fulfillment
-
-    #def test_serialize_condition_and_validate_fulfillment(self,
-                                                          #fulfillment_sha256,
-                                                          #fulfillment_ed25519):
-        #ilp_fulfillment_sha = Fulfillment.from_uri(fulfillment_sha256['fulfillment_uri'])
-        #ilp_fulfillment_ed = Fulfillment.from_uri(fulfillment_ed25519['fulfillment_uri'])
-
-        #fulfillment_escrow = ThresholdSha256Fulfillment(threshold=1)
-        #fulfillment_timeout = TimeoutFulfillment(expire_time=str(float(timestamp()) + 1000))
-        #fulfillment_timeout_inverted = InvertedThresholdSha256Fulfillment(threshold=1)
-        #fulfillment_timeout_inverted.add_subfulfillment(fulfillment_timeout)
-
-        #fulfillment_and_execute = ThresholdSha256Fulfillment(threshold=2)
-        #fulfillment_and_execute.add_subfulfillment(ilp_fulfillment_ed)
-        #fulfillment_and_execute.add_subfulfillment(fulfillment_timeout)
-
-        #assert fulfillment_and_execute.validate(MESSAGE, now=timestamp()) is True
-
-        #fulfillment_and_abort = ThresholdSha256Fulfillment(threshold=2)
-        #fulfillment_and_abort.add_subfulfillment(ilp_fulfillment_sha)
-        #fulfillment_and_abort.add_subfulfillment(fulfillment_timeout_inverted)
-
-        ## timeout has not occured (over about 1000 seconds)
-        #assert fulfillment_and_abort.validate(MESSAGE, now=timestamp()) is False
-
-        #fulfillment_escrow.add_subfulfillment(fulfillment_and_execute)
-        #fulfillment_escrow.add_subfulfillment(fulfillment_and_abort)
-
-        #parsed_fulfillment = fulfillment_escrow.from_dict(fulfillment_escrow.to_dict())
-
-        #assert parsed_fulfillment.condition_uri == fulfillment_escrow.condition_uri
-        #assert parsed_fulfillment.serialize_uri() == fulfillment_escrow.serialize_uri()
-        #assert parsed_fulfillment.validate(MESSAGE, now=timestamp()) is True
-
-    #def test_escrow_execute(self, fulfillment_sha256, fulfillment_ed25519):
-
-        #ilp_fulfillment_sha = Fulfillment.from_uri(fulfillment_sha256['fulfillment_uri'])
-        #ilp_fulfillment_ed = Fulfillment.from_uri(fulfillment_ed25519['fulfillment_uri'])
-
-        #time_sleep = 3
-
-        #fulfillment_escrow = ThresholdSha256Fulfillment(threshold=1)
-        #fulfillment_timeout = TimeoutFulfillment(expire_time=str(float(timestamp()) + time_sleep))
-        #fulfillment_timeout_inverted = InvertedThresholdSha256Fulfillment(threshold=1)
-        #fulfillment_timeout_inverted.add_subfulfillment(fulfillment_timeout)
-
-        ## fulfill execute branch
-        #fulfillment_and_execute = ThresholdSha256Fulfillment(threshold=2)
-        #fulfillment_and_execute.add_subfulfillment(ilp_fulfillment_ed)
-        #fulfillment_and_execute.add_subfulfillment(fulfillment_timeout)
-
-        ## do not fulfill abort branch
-        #fulfillment_and_abort = ThresholdSha256Fulfillment(threshold=2)
-        #fulfillment_and_abort.add_subcondition(ilp_fulfillment_sha.condition)
-        #fulfillment_and_abort.add_subfulfillment(fulfillment_timeout_inverted)
-
-        #fulfillment_escrow.add_subfulfillment(fulfillment_and_execute)
-        #fulfillment_escrow.add_subfulfillment(fulfillment_and_abort)
-
-        ## in-time validation
-        #assert fulfillment_escrow.validate(MESSAGE, now=timestamp()) is True
-
-        #sleep(3)
-        ## out-of-time validation
-        #assert fulfillment_escrow.validate(MESSAGE, now=timestamp()) is False
-
-    #def test_escrow_abort(self, fulfillment_sha256, fulfillment_ed25519):
-        #ilp_fulfillment_sha = Fulfillment.from_uri(fulfillment_sha256['fulfillment_uri'])
-        #ilp_fulfillment_ed = Fulfillment.from_uri(fulfillment_ed25519['fulfillment_uri'])
-
-        #time_sleep = 0
-
-        #fulfillment_escrow = ThresholdSha256Fulfillment(threshold=1)
-        #fulfillment_timeout = TimeoutFulfillment(expire_time=str(float(timestamp()) + time_sleep))
-        #fulfillment_timeout_inverted = InvertedThresholdSha256Fulfillment(threshold=1)
-        #fulfillment_timeout_inverted.add_subfulfillment(fulfillment_timeout)
-
-        ## do not fulfill execute branch
-        #fulfillment_and_execute = ThresholdSha256Fulfillment(threshold=2)
-        #fulfillment_and_execute.add_subcondition(ilp_fulfillment_ed.condition)
-        #fulfillment_and_execute.add_subfulfillment(fulfillment_timeout)
-
-        #fulfillment_and_abort = ThresholdSha256Fulfillment(threshold=2)
-        #fulfillment_and_abort.add_subfulfillment(ilp_fulfillment_sha)
-        #fulfillment_and_abort.add_subfulfillment(fulfillment_timeout_inverted)
-
-        #fulfillment_escrow.add_subfulfillment(fulfillment_and_execute)
-        #fulfillment_escrow.add_subfulfillment(fulfillment_and_abort)
-
-        ## out-of-time validation
-        #assert fulfillment_escrow.validate(MESSAGE, now=timestamp()) is True
-
     #def test_escrow_execute_abort(self, fulfillment_sha256, fulfillment_ed25519):
         #ilp_fulfillment_sha = Fulfillment.from_uri(fulfillment_sha256['fulfillment_uri'])
         #ilp_fulfillment_ed = Fulfillment.from_uri(fulfillment_ed25519['fulfillment_uri'])

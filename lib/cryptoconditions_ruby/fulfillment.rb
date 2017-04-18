@@ -131,7 +131,7 @@ module CryptoconditionsRuby
       raise 'Implement me'
     end
 
-    def validate(*_args, **_kwargs)
+    def validate(**_kwargs)
       raise 'Implement me'
     end
   end

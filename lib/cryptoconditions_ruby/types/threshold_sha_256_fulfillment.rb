@@ -318,7 +318,7 @@ module CryptoconditionsRuby
         end
       end
 
-      def validate(message = nil, _kwargs = {})
+      def validate(message: nil, **_kwargs)
         fulfillments = subconditions.select { |c| c['type'] == FULFILLMENT }
 
         min_weight = Float::INFINITY
@@ -332,7 +332,7 @@ module CryptoconditionsRuby
         return if total_weight < threshold
 
         valid_decisions = fulfillments.map do |fulfillment|
-          if fulfillment['body'].validate(message, _kwargs)
+          if fulfillment['body'].validate(message: message, **_kwargs)
             [true] * fulfillment['weight']
           end
         end.compact.flatten

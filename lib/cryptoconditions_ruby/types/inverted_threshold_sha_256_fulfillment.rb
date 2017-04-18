@@ -7,7 +7,7 @@ module CryptoconditionsRuby
       TYPE_ID = 98
       FEATURE_BITMASK = 0x09
 
-      def validate(message = nil, **kwargs)
+      def validate(message: nil, **kwargs)
         !super
       end
     end

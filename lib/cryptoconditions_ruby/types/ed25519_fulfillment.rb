@@ -69,7 +69,7 @@ module CryptoconditionsRuby
         self.signature = (Utils::Base58.decode(data['signature']) if data['signature'])
       end
 
-      def validate(message = nil, _kwargs = {})
+      def validate(message: nil, **_kwargs)
         return false unless message && signature
 
         public_key.verify(signature, message, 'bytes')
