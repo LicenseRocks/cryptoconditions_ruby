@@ -599,28 +599,30 @@ module CryptoconditionsRuby
           expect(parsed_fulfillment).to be_a(Types::InvertedThresholdSha256Fulfillment)
         end
       end
+    end
 
+    context 'TimeoutFulfillment' do
+      context 'serialize condition and validate fulfillment' do
+        let(:time_now) { -> { Types::TimeoutFulfillment.timestamp(Time.now) } }
+        let(:time_future) { -> { Types::TimeoutFulfillment.timestamp(Time.now + 1_000) } }
+        let(:fulfillment_now) { Types::TimeoutFulfillment.new(time_now.call) }
+        let(:parsed_fulfillment_now) { Fulfillment.from_dict(fulfillment_now.to_dict) }
+        let(:fulfillment_future) { Types::TimeoutFulfillment.new(time_future.call) }
+        let(:parsed_fulfillment_future) { Fulfillment.from_dict(fulfillment_future.to_dict) }
+
+        it 'works' do
+          expect(parsed_fulfillment_now.condition_uri).to eq(fulfillment_now.condition_uri)
+          expect(parsed_fulfillment_now.serialize_uri).to eq(fulfillment_now.serialize_uri)
+          expect(parsed_fulfillment_now.validate(nil, time_now.call)).to be_falsey
+
+          expect(parsed_fulfillment_future.condition_uri).to eq(fulfillment_future.condition_uri)
+          expect(parsed_fulfillment_future.serialize_uri).to eq(fulfillment_future.serialize_uri)
+          expect(parsed_fulfillment_future.validate(nil, time_now.call)).to be_truthy
+        end
+      end
     end
   end
 end
-
-#class TestTimeoutFulfillment:
-
-    #def test_serialize_condition_and_validate_fulfillment(self):
-
-        #fulfillment = TimeoutFulfillment(expire_time=timestamp())
-        #parsed_fulfillment = fulfillment.from_dict(fulfillment.to_dict())
-
-        #assert parsed_fulfillment.condition_uri == fulfillment.condition_uri
-        #assert parsed_fulfillment.serialize_uri() == fulfillment.serialize_uri()
-        #assert parsed_fulfillment.validate(now=timestamp()) is False
-
-        #fulfillment = TimeoutFulfillment(expire_time=str(float(timestamp()) + 1000))
-        #parsed_fulfillment = fulfillment.from_dict(fulfillment.to_dict())
-
-        #assert parsed_fulfillment.condition_uri == fulfillment.condition_uri
-        #assert parsed_fulfillment.serialize_uri() == fulfillment.serialize_uri()
-        #assert parsed_fulfillment.validate(now=timestamp()) is True
 
 
 #class TestEscrow:

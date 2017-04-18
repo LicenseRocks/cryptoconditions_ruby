@@ -1,15 +1,15 @@
 module CryptoconditionsRuby
   TIMESTAMP_REGEX = /^\d{10}(\.\d+)?$/
 
-  def timestamp
-    format('%6f', Time.now.to_f)
-  end
-
   module Types
     class TimeoutFulfillment < PreimageSha256Fulfillment
       TYPE_ID = 99
       FEATURE_BITMASK = 0x09
       REGEX = TIMESTAMP_REGEX
+
+      def self.timestamp(time)
+        format('%6f', time.to_f)
+      end
 
       def initialize(expire_time = nil)
         if expire_time.is_a?(String) && !expire_time.match(REGEX)
