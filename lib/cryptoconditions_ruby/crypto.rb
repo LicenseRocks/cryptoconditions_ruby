@@ -20,8 +20,8 @@ module CryptoconditionsRuby
     module Helpers
       def ed25519_generate_key_pair
         sk = Ed25519SigningKey.generate
-        private_value_base58 = sk.private_key
-        public_value_compressed_base58 = sk.public_key
+        private_value_base58 = sk.encode('base58')
+        public_value_compressed_base58 = sk.get_verifying_key.encode('base58')
         [private_value_base58, public_value_compressed_base58]
       end
 
@@ -157,6 +157,11 @@ module CryptoconditionsRuby
         super(encoder.new.decode(signature), data)
       rescue ::RbNaCl::BadSignatureError
         false
+      end
+
+      def encode(encoding = 'base58')
+        encoder = Crypto.get_encoder(encoding).new
+        encoder.encode(self.to_s)
       end
     end
   end

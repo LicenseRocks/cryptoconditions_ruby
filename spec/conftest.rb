@@ -3,7 +3,7 @@ module Conftest
   VK_HEX_ILP = 'ec172b93ad5e563bf4932c70e1245034c35467ef2efd4d64ebf819683467e2bf'.freeze
   VK_B64_ILP = '7Bcrk61eVjv0kyxw4SRQNMNUZ+8u/U1k6/gZaDRn4r8='.freeze
   VK_B58_ILP = 'Gtbi6WQDB6wUePiZm8aYs5XZ5pUqx9jMMLvRVHPESTjU'.freeze
-  VK_BYT_ILP = '\xec\x17+\x93\xad^V;\xf4\x93,p\xe1$P4\xc3Tg\xef.\xfdMd\xeb\xf8\x19h4g\xe2\xbf'.freeze
+  VK_BYT_ILP = [236, 23, 43, 147, 173, 94, 86, 59, 244, 147, 44, 112, 225, 36, 80, 52, 195, 84, 103, 239, 46, 253, 77, 100, 235, 248, 25, 104, 52, 103, 226, 191].pack('C*').freeze
 
   SK_HEX_ILP = '833fe62409237b9d62ec77587520911e9a759cec1d19755b7da901b96dca3d42'.freeze
   SK_B64_ILP = 'gz/mJAkje51i7HdYdSCRHpp1nOwdGXVbfakBuW3KPUI='.freeze
