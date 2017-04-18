@@ -80,7 +80,7 @@ class CryptoconditionsRuby::Utils::Reader
     length = read_uint8
 
     if length & HIGH_BIT > 0
-      read_uint(length & LOWER_SEVEN_BITS)
+      return read_uint(length & LOWER_SEVEN_BITS)
     end
     length
   end

@@ -113,15 +113,15 @@ module CryptoconditionsRuby
       TypeRegistry.get_class_from_type_id(type_id)
 
       if bitmask > Condition::MAX_SAFE_BITMASK
-        raise ValueError, 'Bitmask too large to be safely represented'
+        raise StandardError, 'Bitmask too large to be safely represented'
       end
 
       if bitmask & ~Condition::SUPPORTED_BITMASK
-        raise ValueError, 'Condition requested unsupported feature suites'
+        raise StandardError, 'Condition requested unsupported feature suites'
       end
 
       if max_fulfillment_length > Condition::MAX_FULFILLMENT_LENGTH
-        raise ValueError, 'Condition requested too large of a max fulfillment size'
+        raise StandardError, 'Condition requested too large of a max fulfillment size'
       end
       true
     end

@@ -12,7 +12,7 @@ module CryptoconditionsRuby
       private :bitmask
       def initialize(threshold = nil)
         if threshold && (!threshold.is_a?(Integer) || threshold < 1)
-          raise ValueError, "Threshold must be a integer greater than zero, was: #{threshold}"
+          raise StandardError, "Threshold must be a integer greater than zero, was: #{threshold}"
         end
         self.threshold = threshold
         self.subconditions = []
@@ -26,7 +26,7 @@ module CryptoconditionsRuby
           raise TypeError, 'Subconditions must be URIs or objects of type Condition'
         end
         unless weight.is_a?(Integer) || weight < 1
-          raise ValueError, "Invalid weight: #{weight}"
+          raise StandardError, "Invalid weight: #{weight}"
         end
 
         subconditions.push(
@@ -51,8 +51,8 @@ module CryptoconditionsRuby
         unless subfulfillment.is_a?(Fulfillment)
           raise TypeError, 'Subfulfillments must be URIs or objects of type Fulfillment'
         end
-        unless weight.is_a?(Integer) || weight < 1
-          raise ValueError, "Invalid weight: #{weight}"
+        if !weight.is_a?(Integer) || weight < 0
+          raise StandardError, "Invalid weight: #{weight}"
         end
         subconditions.push(
           'type' => FULFILLMENT,
@@ -77,21 +77,19 @@ module CryptoconditionsRuby
       end
 
       def get_subcondition_from_vk(vk)
-        vk = vk.encode if vk.is_a?(String)
-
         subconditions.inject([]) do |store, c|
-          if c['body'].is_a?(Ed25519Fulfillment) && Utils::Base58.encode(c['body'].public_key) == vk
+          if c['body'].is_a?(Ed25519Fulfillment) && Utils::Base58.encode(c['body'].public_key.to_s) == vk
             store.push(c)
           elsif c['body'].is_a?(ThresholdSha256Fulfillment)
             result = c['body'].get_subcondition_from_vk(vk)
-            store.push(result) if result
-            store
+            store += result if result
           end
+          store
         end
       end
 
       def write_hash_payload(hasher)
-        raise ValueError, 'Requires subconditions' if subconditions.empty?
+        raise StandardError, 'Requires subconditions' if subconditions.empty?
 
         _subconditions = subconditions.inject([]) do |store, c|
           writer = Utils::Writer.new
@@ -320,7 +318,7 @@ module CryptoconditionsRuby
         end
       end
 
-      def validate(message = nil, kwargs)
+      def validate(message = nil, _kwargs = {})
         fulfillments = subconditions.select { |c| c['type'] == FULFILLMENT }
 
         min_weight = Float::INFINITY
@@ -334,7 +332,7 @@ module CryptoconditionsRuby
         return if total_weight < threshold
 
         valid_decisions = fulfillments.map do |fulfillment|
-          if fulfillment['body'].validate(message, kwargs)
+          if fulfillment['body'].validate(message, _kwargs)
             [true] * fulfillment['weight']
           end
         end.compact.flatten

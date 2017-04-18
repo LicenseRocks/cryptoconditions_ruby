@@ -386,150 +386,204 @@ module CryptoconditionsRuby
         expect(parsed_fulfillment.to_dict).to eq(fulfillment.to_dict)
       end
     end
+
+    context 'deserialize unsigned dict to fulfillment' do
+      let(:threshold) { 1 }
+      let(:fulfillment) { Types::ThresholdSha256Fulfillment.new(threshold) }
+      let(:parsed_fulfillment) { Fulfillment.from_dict(fulfillment.to_dict) }
+
+      before do
+        fulfillment.add_subfulfillment(Types::Ed25519Fulfillment.new(Crypto::Ed25519VerifyingKey.new(vk_ilp['b58'])))
+        fulfillment.add_subfulfillment(Types::Ed25519Fulfillment.new(Crypto::Ed25519VerifyingKey.new(vk_ilp['b58'])))
+      end
+
+      it 'works' do
+        expect(parsed_fulfillment.condition.serialize_uri).to eq(fulfillment.condition.serialize_uri)
+        expect(parsed_fulfillment.to_dict).to eq(fulfillment.to_dict)
+      end
+    end
+
+    context 'test weights' do
+      let(:ilp_fulfillment) { Fulfillment.from_uri(fulfillment_ed25519['fulfillment_uri']) }
+
+      let(:fulfillment_1) { Types::ThresholdSha256Fulfillment.new(2) }
+      let(:parsed_fulfillment_1) { Fulfillment.from_dict(fulfillment_1.to_dict) }
+
+      let(:fulfillment_2) { Types::ThresholdSha256Fulfillment.new(3) }
+      let(:parsed_fulfillment_2) { Fulfillment.from_dict(fulfillment_2.to_dict) }
+
+      let(:fulfillment_3) { Types::ThresholdSha256Fulfillment.new(3) }
+      let(:parsed_fulfillment_3) { Fulfillment.from_dict(fulfillment_3.to_dict) }
+
+      let(:fulfillment_4) { Types::ThresholdSha256Fulfillment.new(2) }
+
+      before do
+        fulfillment_1.add_subfulfillment(ilp_fulfillment, 2)
+        fulfillment_2.add_subfulfillment(ilp_fulfillment, 2)
+        fulfillment_3.add_subfulfillment(ilp_fulfillment, 3)
+      end
+
+      it 'works' do
+        expect(parsed_fulfillment_1.condition.serialize_uri).to eq(fulfillment_1.condition.serialize_uri)
+        expect(parsed_fulfillment_1.to_dict).to eq(fulfillment_1.to_dict)
+        expect(parsed_fulfillment_1.subconditions.first['weight']).to eq(2)
+        expect(parsed_fulfillment_1.validate(MESSAGE)).to be_truthy
+
+        expect(parsed_fulfillment_2.subconditions.first['weight']).to eq(2)
+        expect(parsed_fulfillment_2.validate(MESSAGE)).to be_falsey
+
+        expect(parsed_fulfillment_3.condition.serialize_uri).to eq(fulfillment_3.condition.serialize_uri)
+        expect(fulfillment_3.condition.serialize_uri).to_not eq(fulfillment_1.condition.serialize_uri)
+        expect(parsed_fulfillment_3.validate(MESSAGE)).to be_truthy
+
+        expect { fulfillment_4.add_subfulfillment(ilp_fulfillment, -2) }.to raise_error StandardError
+      end
+    end
+
+    context 'serialize and deserialize fulfillment' do
+      let(:ilp_fulfillment) { Fulfillment.from_uri(fulfillment_ed25519['fulfillment_uri']) }
+      let(:num_fulfillments) { 20 }
+      let(:threshold) { (num_fulfillments * 2 / 3.0).ceil }
+      let(:fulfillment) { Types::ThresholdSha256Fulfillment.new(threshold) }
+      let(:deserialized_fulfillment) { Fulfillment.from_uri(fulfillment.serialize_uri) }
+
+      before do
+        num_fulfillments.times do
+          fulfillment.add_subfulfillment(ilp_fulfillment)
+        end
+      end
+
+      it 'works' do
+        expect(fulfillment.validate(MESSAGE)).to be_truthy
+        expect(deserialized_fulfillment).to be_a(Types::ThresholdSha256Fulfillment)
+        expect(deserialized_fulfillment.threshold).to eq(threshold)
+        expect(deserialized_fulfillment.subconditions.select { |f| f['type'] == 'fulfillment' }.length).to eq(threshold)
+        expect(deserialized_fulfillment.subconditions.length).to eq(num_fulfillments)
+        expect(deserialized_fulfillment.serialize_uri).to eq(fulfillment.serialize_uri)
+        expect(deserialized_fulfillment.validate(MESSAGE)).to be_truthy
+      end
+    end
+
+    context 'fulfillment did not reach threshold' do
+      let(:ilp_fulfillment) { Fulfillment.from_uri(fulfillment_ed25519['fulfillment_uri']) }
+      let(:threshold) { 10 }
+      let(:fulfillment) { Types::ThresholdSha256Fulfillment.new(threshold) }
+      let(:deserialized_fulfillment) { Fulfillment.from_uri(fulfillment.serialize_uri) }
+
+      before do
+        (threshold - 1).times do
+          fulfillment.add_subfulfillment(ilp_fulfillment)
+        end
+      end
+
+      it 'works' do
+        expect { fulfillment.serialize_uri }.to raise_error NoMethodError
+        expect(fulfillment.validate(MESSAGE)).to be_falsey
+
+        fulfillment.add_subfulfillment(ilp_fulfillment)
+
+        expect(fulfillment.validate(MESSAGE)).to be_truthy
+        expect(deserialized_fulfillment).to be_a(Types::ThresholdSha256Fulfillment)
+        expect(deserialized_fulfillment.threshold).to eq(threshold)
+        expect(deserialized_fulfillment.subconditions.select { |f| f['type'] == 'fulfillment' }.length).to eq(threshold)
+        expect(deserialized_fulfillment.subconditions.length).to eq(threshold)
+        expect(deserialized_fulfillment.serialize_uri).to eq(fulfillment.serialize_uri)
+        expect(deserialized_fulfillment.validate(MESSAGE)).to be_truthy
+
+        fulfillment.add_subfulfillment(Types::Ed25519Fulfillment.new(Crypto::Ed25519VerifyingKey.new(vk_ilp['b58'])))
+        expect(deserialized_fulfillment.validate(MESSAGE)).to be_truthy
+      end
+    end
+
+    context 'fulfillment nested and or' do
+      let(:ilp_fulfillment_sha) { Fulfillment.from_uri(fulfillment_sha256['fulfillment_uri']) }
+      let(:ilp_fulfillment_ed) { Fulfillment.from_uri(fulfillment_ed25519['fulfillment_uri']) }
+      let(:fulfillment) { Types::ThresholdSha256Fulfillment.new(2) }
+      let(:nested_fulfillment) { Types::ThresholdSha256Fulfillment.new(1) }
+
+      it 'works' do
+        fulfillment.add_subfulfillment(ilp_fulfillment_sha)
+
+        expect(fulfillment.validate(MESSAGE)).to be_falsey
+
+        nested_fulfillment.add_subfulfillment(ilp_fulfillment_ed)
+        expect(nested_fulfillment.validate(MESSAGE)).to be_truthy
+
+        nested_fulfillment.add_subfulfillment(ilp_fulfillment_ed)
+        expect(nested_fulfillment.validate(MESSAGE)).to be_truthy
+
+        fulfillment.add_subfulfillment(nested_fulfillment)
+        expect(fulfillment.validate(MESSAGE)).to be_truthy
+
+        fulfillment_uri = fulfillment.serialize_uri
+        expect(fulfillment.condition_uri).to eq(fulfillment_threshold_nested_and_or['condition_uri'])
+        expect(fulfillment_uri).to eq(fulfillment_threshold_nested_and_or['fulfillment_uri'])
+
+        deserialized_fulfillment = Fulfillment.from_uri(fulfillment_uri)
+
+        condition_uri = fulfillment.condition.serialize_uri
+        deserialized_condition = Condition.from_uri(condition_uri)
+
+        expect(deserialized_fulfillment).to be_a(Types::ThresholdSha256Fulfillment)
+        expect(deserialized_fulfillment.threshold).to eq(2)
+        expect(deserialized_fulfillment.subconditions.length).to eq(2)
+        expect(deserialized_fulfillment.subconditions.last['body'].subconditions.length).to eq(2)
+        expect(deserialized_fulfillment.serialize_uri).to eq(fulfillment_uri)
+        expect(deserialized_fulfillment.validate(MESSAGE)).to be_truthy
+        expect(deserialized_fulfillment.condition.serialize_uri).to eq(condition_uri)
+        vk = Utils::Base58.encode(ilp_fulfillment_ed.public_key.to_s)
+        expect(fulfillment.get_subcondition_from_vk(vk).length).to eq(2)
+        expect(deserialized_fulfillment.get_subcondition_from_vk(vk).length).to eq(1)
+      end
+    end
+
+    context 'fulfillment nested' do
+      let(:ilp_fulfillment_sha) { Fulfillment.from_uri(fulfillment_sha256['fulfillment_uri']) }
+      let(:ilp_fulfillment_ed1) { Fulfillment.from_uri(fulfillment_ed25519_2['fulfillment_uri']) }
+      let(:original_fulfillment) { Types::ThresholdSha256Fulfillment.new(2) }
+      let(:max_depth) { 6 }
+
+      let(:add_nested_fulfillment) do
+        lambda do |parent, current_depth = 0|
+          current_depth += 1
+          child = Types::ThresholdSha256Fulfillment.new(1)
+          if current_depth < max_depth
+            add_nested_fulfillment.call(child, current_depth)
+          else
+            child.add_subfulfillment(ilp_fulfillment_ed1)
+          end
+          parent.add_subfulfillment(child)
+          parent
+        end
+      end
+
+      before do
+        original_fulfillment.add_subfulfillment(ilp_fulfillment_sha)
+      end
+
+      it 'works' do
+        fulfillment = add_nested_fulfillment.call(original_fulfillment)
+
+        expect(fulfillment.validate(MESSAGE)).to be_truthy
+        expect(fulfillment.subconditions.length).to eq(2)
+        expect(fulfillment.subconditions.last['body']).to be_a(Types::ThresholdSha256Fulfillment)
+        expect(fulfillment.subconditions.last['body'].subconditions.first['body']).to be_a(Types::ThresholdSha256Fulfillment)
+
+        fulfillment_uri = fulfillment.serialize_uri
+        deserialized_fulfillment = Fulfillment.from_uri(fulfillment_uri)
+
+        condition_uri = fulfillment.condition.serialize_uri
+        deserialized_condition = Condition.from_uri(condition_uri)
+
+        expect(deserialized_fulfillment.serialize_uri).to eq(fulfillment_uri)
+        expect(deserialized_fulfillment.validate(MESSAGE)).to be_truthy
+        expect(deserialized_condition.serialize_uri).to eq(condition_uri)
+      end
+    end
   end
 end
 
 #class TestThresholdSha256Fulfillment:
-    #def test_deserialize_unsigned_dict_to_fulfillment(self, vk_ilp):
-        #fulfillment = ThresholdSha256Fulfillment(threshold=1)
-        #fulfillment.add_subfulfillment(Ed25519Fulfillment(public_key=VerifyingKey(vk_ilp['b58'])))
-        #fulfillment.add_subfulfillment(Ed25519Fulfillment(public_key=VerifyingKey(vk_ilp['b58'])))
-        #parsed_fulfillment = fulfillment.from_dict(fulfillment.to_dict())
-
-        #assert parsed_fulfillment.condition.serialize_uri() == fulfillment.condition.serialize_uri()
-        #assert parsed_fulfillment.to_dict() == fulfillment.to_dict()
-
-    #def test_weights(self, fulfillment_ed25519):
-        #ilp_fulfillment = Fulfillment.from_uri(fulfillment_ed25519['fulfillment_uri'])
-
-        #fulfillment1 = ThresholdSha256Fulfillment(threshold=2)
-        #fulfillment1.add_subfulfillment(ilp_fulfillment, weight=2)
-        #parsed_fulfillment1 = fulfillment1.from_dict(fulfillment1.to_dict())
-
-        #assert parsed_fulfillment1.condition.serialize_uri() == fulfillment1.condition.serialize_uri()
-        #assert parsed_fulfillment1.to_dict() == fulfillment1.to_dict()
-        #assert parsed_fulfillment1.subconditions[0]['weight'] == 2
-        #assert parsed_fulfillment1.validate(MESSAGE) is True
-
-        #fulfillment2 = ThresholdSha256Fulfillment(threshold=3)
-        #fulfillment2.add_subfulfillment(ilp_fulfillment, weight=2)
-        #parsed_fulfillment2 = fulfillment1.from_dict(fulfillment2.to_dict())
-
-        #assert parsed_fulfillment2.subconditions[0]['weight'] == 2
-        #assert parsed_fulfillment2.validate(MESSAGE) is False
-
-        #fulfillment3 = ThresholdSha256Fulfillment(threshold=3)
-        #fulfillment3.add_subfulfillment(ilp_fulfillment, weight=3)
-        #parsed_fulfillment3 = fulfillment1.from_dict(fulfillment3.to_dict())
-
-        #assert parsed_fulfillment3.condition.serialize_uri() == fulfillment3.condition.serialize_uri()
-        #assert not (fulfillment3.condition.serialize_uri() == fulfillment1.condition.serialize_uri())
-        #assert parsed_fulfillment3.validate(MESSAGE) is True
-
-        #fulfillment4 = ThresholdSha256Fulfillment(threshold=2)
-        #with pytest.raises(ValueError):
-            #fulfillment4.add_subfulfillment(ilp_fulfillment, weight=-2)
-
-    #def test_serialize_deserialize_fulfillment(self,
-                                               #fulfillment_ed25519):
-        #ilp_fulfillment = Fulfillment.from_uri(fulfillment_ed25519['fulfillment_uri'])
-        #num_fulfillments = 20
-        #threshold = ceil(num_fulfillments * 2 / 3)
-
-        ## Create a threshold condition
-        #fulfillment = ThresholdSha256Fulfillment(threshold=threshold)
-        #for i in range(num_fulfillments):
-            #fulfillment.add_subfulfillment(ilp_fulfillment)
-
-        #fulfillment_uri = fulfillment.serialize_uri()
-
-        #assert fulfillment.validate(MESSAGE)
-        #deserialized_fulfillment = Fulfillment.from_uri(fulfillment_uri)
-
-        #assert isinstance(deserialized_fulfillment, ThresholdSha256Fulfillment)
-        #assert deserialized_fulfillment.threshold == threshold
-        #assert len([f for f in deserialized_fulfillment.subconditions if f['type'] == 'fulfillment']) == threshold
-        #assert len(deserialized_fulfillment.subconditions) == num_fulfillments
-        #assert deserialized_fulfillment.serialize_uri() == fulfillment_uri
-        #assert deserialized_fulfillment.validate(MESSAGE)
-
-    #def test_fulfillment_didnt_reach_threshold(self, vk_ilp, fulfillment_ed25519):
-        #ilp_fulfillment = Fulfillment.from_uri(fulfillment_ed25519['fulfillment_uri'])
-        #threshold = 10
-
-        ## Create a threshold condition
-        #fulfillment = ThresholdSha256Fulfillment(threshold=threshold)
-
-        #for i in range(threshold - 1):
-            #fulfillment.add_subfulfillment(ilp_fulfillment)
-
-        #with pytest.raises(KeyError):
-            #fulfillment.serialize_uri()
-
-        #assert fulfillment.validate(MESSAGE) is False
-
-        #fulfillment.add_subfulfillment(ilp_fulfillment)
-
-        #fulfillment_uri = fulfillment.serialize_uri()
-        #assert fulfillment.validate(MESSAGE)
-
-        #deserialized_fulfillment = Fulfillment.from_uri(fulfillment_uri)
-
-        #assert isinstance(deserialized_fulfillment, ThresholdSha256Fulfillment)
-        #assert deserialized_fulfillment.threshold == threshold
-        #assert len([f for f in deserialized_fulfillment.subconditions if f['type'] == 'fulfillment']) == threshold
-        #assert len(deserialized_fulfillment.subconditions) == threshold
-        #assert deserialized_fulfillment.serialize_uri() == fulfillment_uri
-        #assert deserialized_fulfillment.validate(MESSAGE)
-
-        #fulfillment.add_subfulfillment(Ed25519Fulfillment(public_key=VerifyingKey(vk_ilp['b58'])))
-
-        #assert fulfillment.validate(MESSAGE) == True
-
-    #def test_fulfillment_nested_and_or(self,
-                                       #fulfillment_sha256,
-                                       #fulfillment_ed25519,
-                                       #fulfillment_threshold_nested_and_or):
-        #ilp_fulfillment_sha = Fulfillment.from_uri(fulfillment_sha256['fulfillment_uri'])
-        #ilp_fulfillment_ed = Fulfillment.from_uri(fulfillment_ed25519['fulfillment_uri'])
-
-        ## 2-of-2 (AND with 2 inputs)
-        #fulfillment = ThresholdSha256Fulfillment(threshold=2)
-        #fulfillment.add_subfulfillment(ilp_fulfillment_sha)
-
-        #assert fulfillment.validate(MESSAGE) is False
-
-        ## 1-of-2 (OR with 2 inputs)
-        #nested_fulfillment = ThresholdSha256Fulfillment(threshold=1)
-        #nested_fulfillment.add_subfulfillment(ilp_fulfillment_ed)
-        #assert nested_fulfillment.validate(MESSAGE) is True
-        #nested_fulfillment.add_subfulfillment(ilp_fulfillment_ed)
-        #assert nested_fulfillment.validate(MESSAGE) is True
-
-        #fulfillment.add_subfulfillment(nested_fulfillment)
-        #assert fulfillment.validate(MESSAGE) is True
-
-        #fulfillment_uri = fulfillment.serialize_uri()
-        #assert fulfillment.condition_uri == fulfillment_threshold_nested_and_or['condition_uri']
-        #assert fulfillment_uri == fulfillment_threshold_nested_and_or['fulfillment_uri']
-
-        #print(fulfillment_uri)
-        #deserialized_fulfillment = Fulfillment.from_uri(fulfillment_uri)
-
-        #condition_uri = fulfillment.condition.serialize_uri()
-        #deserialized_condition = Condition.from_uri(condition_uri)
-
-        #assert isinstance(deserialized_fulfillment, ThresholdSha256Fulfillment)
-        #assert deserialized_fulfillment.threshold == 2
-        #assert len(deserialized_fulfillment.subconditions) == 2
-        #assert len(deserialized_fulfillment.subconditions[1]['body'].subconditions) == 2
-        #assert deserialized_fulfillment.serialize_uri() == fulfillment_uri
-        #assert deserialized_fulfillment.validate(MESSAGE)
-        #assert deserialized_condition.serialize_uri() == condition_uri
-        #vk = ilp_fulfillment_ed.public_key.encode(encoding='base58')
-        #assert len(fulfillment.get_subcondition_from_vk(vk)) == 2
-        #assert len(deserialized_fulfillment.get_subcondition_from_vk(vk)) == 1
-
     #def test_fulfillment_nested(self,
                                 #fulfillment_sha256,
                                 #fulfillment_ed25519_2, ):

@@ -32,7 +32,7 @@ module CryptoconditionsRuby
       end
 
       def generate_hash
-        raise ValueError, 'Requires a public publicKey' unless public_key
+        raise StandardError, 'Requires a public publicKey' unless public_key
         public_key.to_s
       end
 
@@ -71,6 +71,7 @@ module CryptoconditionsRuby
 
       def validate(message = nil, _kwargs = {})
         return false unless message && signature
+
         public_key.verify(signature, message, 'bytes')
       end
     end
