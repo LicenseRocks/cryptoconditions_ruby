@@ -580,66 +580,29 @@ module CryptoconditionsRuby
         expect(deserialized_condition.serialize_uri).to eq(condition_uri)
       end
     end
+
+    context 'InvertedThresholdSha256Fulfillment' do
+      context 'serialize condition and validate fulfillment' do
+        let(:ilp_fulfillment_ed) { Fulfillment.from_uri(fulfillment_ed25519['fulfillment_uri']) }
+        let(:fulfillment) { Types::InvertedThresholdSha256Fulfillment.new(1) }
+        let(:parsed_fulfillment) { Fulfillment.from_dict(fulfillment.to_dict) }
+
+        before do
+          fulfillment.add_subfulfillment(ilp_fulfillment_ed)
+        end
+
+        it 'works' do
+          expect(parsed_fulfillment.condition_uri).to eq(fulfillment.condition_uri)
+          expect(parsed_fulfillment.serialize_uri).to eq(fulfillment.serialize_uri)
+          expect(parsed_fulfillment.validate(MESSAGE)).to be_falsey
+          expect(parsed_fulfillment.validate).to be_truthy
+          expect(parsed_fulfillment).to be_a(Types::InvertedThresholdSha256Fulfillment)
+        end
+      end
+
+    end
   end
 end
-
-#class TestThresholdSha256Fulfillment:
-    #def test_fulfillment_nested(self,
-                                #fulfillment_sha256,
-                                #fulfillment_ed25519_2, ):
-        #ilp_fulfillment_sha = Fulfillment.from_uri(fulfillment_sha256['fulfillment_uri'])
-        #ilp_fulfillment_ed1 = Fulfillment.from_uri(fulfillment_ed25519_2['fulfillment_uri'])
-
-        ## 2-of-2 (AND with 2 inputs)
-        #fulfillment = ThresholdSha256Fulfillment(threshold=2)
-        #fulfillment.add_subfulfillment(ilp_fulfillment_sha)
-
-        #max_depth = 6
-
-        #def add_nested_fulfillment(parent, current_depth=0):
-            #current_depth += 1
-            #child = ThresholdSha256Fulfillment(threshold=1)
-            #if current_depth < max_depth:
-                #add_nested_fulfillment(child, current_depth)
-            #else:
-                #child.add_subfulfillment(ilp_fulfillment_ed1)
-            #parent.add_subfulfillment(child)
-            #return parent
-
-        #fulfillment = add_nested_fulfillment(fulfillment)
-
-        #assert fulfillment.validate(MESSAGE) is True
-        #assert len(fulfillment.subconditions) == 2
-        #assert isinstance(fulfillment.subconditions[1]['body'], ThresholdSha256Fulfillment)
-        #assert isinstance(fulfillment.subconditions[1]['body'].subconditions[0]['body'], ThresholdSha256Fulfillment)
-
-        #fulfillment_uri = fulfillment.serialize_uri()
-        #deserialized_fulfillment = Fulfillment.from_uri(fulfillment_uri)
-
-        #condition_uri = fulfillment.condition.serialize_uri()
-        #deserialized_condition = Condition.from_uri(condition_uri)
-
-        #assert deserialized_fulfillment.serialize_uri() == fulfillment_uri
-        #assert deserialized_fulfillment.validate(MESSAGE) is True
-        #assert deserialized_condition.serialize_uri() == condition_uri
-
-
-#class TestInvertedThresholdSha256Fulfillment:
-
-    #def test_serialize_condition_and_validate_fulfillment(self,
-                                                          #fulfillment_ed25519):
-        #ilp_fulfillment_ed = Fulfillment.from_uri(fulfillment_ed25519['fulfillment_uri'])
-
-        #fulfillment = InvertedThresholdSha256Fulfillment(threshold=1)
-        #fulfillment.add_subfulfillment(ilp_fulfillment_ed)
-        #parsed_fulfillment = fulfillment.from_dict(fulfillment.to_dict())
-
-        #assert parsed_fulfillment.condition_uri == fulfillment.condition_uri
-        #assert parsed_fulfillment.serialize_uri() == fulfillment.serialize_uri()
-        #assert parsed_fulfillment.validate(MESSAGE) is False
-        #assert parsed_fulfillment.validate() is True
-        #assert isinstance(parsed_fulfillment, InvertedThresholdSha256Fulfillment)
-
 
 #class TestTimeoutFulfillment:
 

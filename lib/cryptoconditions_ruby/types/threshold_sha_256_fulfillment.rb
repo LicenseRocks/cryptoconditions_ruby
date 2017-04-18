@@ -295,7 +295,7 @@ module CryptoconditionsRuby
 
         {
           'type' => 'fulfillment',
-          'type_id' => TYPE_ID,
+          'type_id' => type_id,
           'bitmask' => bitmask,
           'threshold' => threshold,
           'subfulfillments' => subfulfillments
