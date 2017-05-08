@@ -13,14 +13,13 @@ describe CryptoconditionsRuby::Utils::Hasher do
     subject { described_class.new('sha256') }
     let(:expected) do
       [
-        210, 106, 142, 69, 29, 249, 59, 240, 148, 97, 230,
-        62, 241, 25, 118, 167, 81, 186, 125, 98, 240, 161,
-        247, 175, 239, 112, 120, 59, 228, 212, 223, 165
+        44, 242, 77, 186, 95, 176, 163, 14, 38, 232, 59, 42, 197, 185, 226, 158, 27, 22, 30, 92,
+        31, 167, 66, 94, 115, 4, 51, 98, 147, 139, 152, 36
       ].pack('C*')
     end
 
     before do
-      subject.write([100, 200, 300])
+      subject.write('hello')
     end
 
     it 'returns the digest' do

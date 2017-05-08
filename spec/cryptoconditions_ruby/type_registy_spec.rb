@@ -15,7 +15,7 @@ describe CryptoconditionsRuby::TypeRegistry do
     end
 
     context 'otherwise' do
-      let(:my_type) { double(:type, TYPE_ID: 12) }
+      let(:my_type) { Class.new { TYPE_ID = 12 } }
       before { described_class.register_type(my_type) }
 
       it 'returns the class name' do

@@ -39,10 +39,10 @@ describe CryptoconditionsRuby::Utils::Writer do
 
   describe '#write_var_uint' do
     context 'value is a string' do
-      let(:value) { 'hello' }
+      let(:value) { [254, 254].pack('C*') }
 
       it 'returns an array containing a binary packed value' do
-        expect(subject.write_var_uint(value)).to eq([[5].pack("C*")])
+        expect(subject.write_var_uint(value)).to eq([[2].pack('C*'), [254, 254].pack('C*')])
       end
     end
 
@@ -50,7 +50,9 @@ describe CryptoconditionsRuby::Utils::Writer do
       let(:value) { 20_000_000 }
 
       it 'returns an array containing a binary packed value' do
-        expect(subject.write_var_uint(value)).to eq([[4].pack("C*")])
+        expect(subject.write_var_uint(value)).to eq(
+          [[4], [0, 0, 0, 0]].map { |ary| ary.pack('C*') }
+        )
       end
     end
 
@@ -73,45 +75,27 @@ describe CryptoconditionsRuby::Utils::Writer do
 
   describe '#write_var_octet_string' do
     context 'buffer length is less than 128' do
-      let(:value) { 127.times.map { [5].pack("C*") } }
+      let(:value) { Array.new(127) { [5].pack("C*") } }
 
-      it 'returns an array containing a binary packed value' do
-        expect(subject.write_var_octet_string(value)).to eq([[127].pack("C*")])
+      it 'prepends the value with the length' do
+        expect(subject.write_var_octet_string(value).first).to eq([127].pack('C*'))
       end
     end
 
     context 'buffer length is greater than 128' do
-      let(:value) { 130.times.map { [5].pack("C*") } }
+      let(:value) { Array.new(130) { [5].pack("C*") } }
 
-      it 'returns an array containing a binary packed value' do
-        expect(subject.write_var_octet_string(value)).to eq([[129], [130]].map { |ary| ary.pack("C*") })
+      it 'prepends the value with the length and the length of the length' do
+        expect(subject.write_var_octet_string(value).slice(0..1)).to eq(
+          [[129], [130]].map { |ary| ary.pack('C*') }
+        )
       end
     end
   end
 
   describe '#write' do
-    context 'input is an array' do
-      let(:value) { [129, 130, 131, 132] }
-
-      it 'writes the raw bytes to the output buffer' do
-        expect(subject.write(value)).to eq([[129, 130, 131, 132].pack("C*")])
-      end
-    end
-
-    context 'input is a list of bytes' do
-      let(:value) { [129, 130, 131, 132].pack("C*") }
-
-      it 'writes the raw bytes to the output buffer' do
-        expect(subject.write(value)).to eq([[129, 130, 131, 132].pack("C*")])
-      end
-    end
-
-    context 'input is not utf8' do
-      let(:value) { 'hällö'.encode("ISO-8859-1") }
-
-      it 'writes th' do
-        expect(subject.write(value)).to eq(['hällö'])
-      end
+    it 'writes the input to the buffer' do
+      expect(subject.write('hello')).to eq(['hello'])
     end
   end
 

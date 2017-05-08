@@ -49,15 +49,15 @@ module CryptoconditionsRuby
 
     describe Ed25519SigningKey do
       describe '.generate' do
-        it 'returns a base58-encoded crypto key pair' do
-          expect(described_class.generate).to respond_to(:private_key)
-          expect(described_class.generate).to respond_to(:public_key)
+        it 'returns a key pair' do
+          expect(described_class.generate.to_s.encoding).to eq(Encoding::ASCII_8BIT)
+          expect(described_class.generate.verify_key.to_s.encoding).to eq(Encoding::ASCII_8BIT)
         end
       end
 
       describe '#verifying_key' do
         it 'returns an Ed25519VerifyingKey instance' do
-          expect(described_class.new.verifying_key).to be_a(Ed25519VerifyingKey)
+          expect(described_class.generate.verify_key).to be_a(RbNaCl::Signatures::Ed25519::VerifyKey)
         end
       end
 
@@ -66,7 +66,7 @@ module CryptoconditionsRuby
 
         it 'returns the data, signed and encoded' do
           expect(subject.sign("I'm a little teapot")).to eq(
-            'XhCGfdAJtaVeDWVNgJVkgm9dEJxz3gSQEJsnE3PfDjCkMpZ4DV8MGjeRqjtxz1qiB8NT1gvSEZVD5bJj5Q7ZDez'
+            '3AHi496wasLgG7U8ZBsJz3cTTvxBqYwVPXubafmJgRNJ26rkV8fXG2ZmN4UkJYvrnLxYDamXZJGd5iuQGLEz3oUq'
           )
         end
       end
@@ -76,19 +76,20 @@ module CryptoconditionsRuby
       let(:signing_key) { Ed25519SigningKey.new(Array.new(32) { '1' }.join) }
       let(:message) { "I'm a little teapot" }
       let(:signature) { signing_key.sign(message) }
-      subject { signing_key.verifying_key }
+      subject { signing_key.verify_key }
 
       describe '#verify' do
         context 'signature check succeeds' do
           it 'returns true' do
-            expect(subject.verify(signature, message)).to be true
+            expect(subject.verify(Utils::Base58.decode(signature), message)).to be true
           end
         end
 
         context 'signature check succeeds' do
           let(:bad_message) { "I'm a BAD little teapot" }
           it 'returns true' do
-            expect(subject.verify(signature, bad_message)).to be false
+            expect { subject.verify(Utils::Base58.decode(signature), bad_message) }
+              .to raise_error(RbNaCl::BadSignatureError)
           end
         end
       end
